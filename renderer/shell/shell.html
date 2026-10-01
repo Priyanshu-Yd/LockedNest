@@ -7,20 +7,24 @@
       content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data: vaultprivate:; media-src 'self' vaultprivate:; font-src 'self'; base-uri 'none'; form-action 'none';"
     />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LockedNest</title>
+    <title>SafeNest</title>
     <link rel="stylesheet" href="../shared/fonts.css" />
+    <link rel="stylesheet" href="../shared/tokens.css" />
+    <link rel="stylesheet" href="../shared/nest-boundary.css" />
     <link rel="stylesheet" href="../vendor/lenis.css" />
     <link rel="stylesheet" href="shell.css" />
     <link rel="stylesheet" href="../personal/personal.css" />
+    <script src="../shared/theme.js"></script>
   </head>
   <body>
     <canvas id="atmosphere" class="atmosphere" aria-hidden="true"></canvas>
+    <div id="home-nest" class="nest-boundary nest-boundary--float nest-boundary--hero" aria-hidden="true"></div>
 
     <div class="app-shell">
       <header id="toolbar" class="toolbar">
         <div class="brand">
           <span class="brand-mark" aria-hidden="true"></span>
-          <span class="brand-name">LockedNest</span>
+          <span class="brand-name">SafeNest</span>
         </div>
 
         <div id="browser-nav" class="nav hidden">
@@ -55,6 +59,21 @@
             <span>Space</span>
             <select id="space-select" aria-label="Current protected space"></select>
           </label>
+          <button
+            id="btn-theme"
+            type="button"
+            class="theme-toggle"
+            title="Switch appearance"
+            aria-label="Switch between dark and light mode"
+          >
+            <svg class="icon-sun" viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.7"/>
+              <path d="M12 3v2M12 19v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M3 12h2M19 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+            </svg>
+            <svg class="icon-moon" viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden="true">
+              <path d="M18 14.5A7 7 0 0 1 9.5 6 6.2 6.2 0 1 0 18 14.5z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+            </svg>
+          </button>
           <button id="btn-home" type="button" class="ghost-btn">Home</button>
           <button id="btn-settings" type="button" class="ghost-btn">Settings</button>
           <button id="btn-lock" type="button" class="ghost-btn" title="Lock Nest (Ctrl+Shift+L)">Lock Nest</button>
@@ -69,7 +88,7 @@
         <nav id="side-nav" class="side-nav" aria-label="Your Nest">
           <div class="side-nav-brand">
             <span class="brand-mark" aria-hidden="true"></span>
-            <span>LockedNest</span>
+            <span>SafeNest</span>
           </div>
           <button type="button" class="side-link is-active" data-nav="dashboard">
             <span class="nav-ico" aria-hidden="true">⌂</span><span>Home</span>
@@ -112,7 +131,8 @@
                 <section class="hero reveal">
                   <p class="eyebrow" id="greeting-eyebrow">Your Nest</p>
                   <h1 class="greeting" id="greeting-title">Welcome to your Nest</h1>
-                  <p class="greeting-sub">Your private digital workspace.</p>
+                  <p class="greeting-sub">Your private workspace on this PC.</p>
+                  <p id="status-chip" class="status-chip is-active" aria-live="polite">Protected</p>
                 </section>
 
                 <section class="reveal">
@@ -247,8 +267,8 @@
                 <div class="file-list" id="files-list"></div>
                 <div class="empty-state hidden" id="files-empty">
                   <div class="empty-glyph">📁</div>
-                  <strong>No files in your Nest yet.</strong>
-                  <p>Import files to keep them private.</p>
+                  <strong>No files yet</strong>
+                  <p>Import your first private file into SafeNest.</p>
                   <button type="button" class="primary-btn btn-import" data-category="files">Import files</button>
                 </div>
               </main>
@@ -363,6 +383,15 @@
                 </section>
 
                 <section class="section-card reveal">
+                  <h2>Appearance</h2>
+                  <p class="muted">Switch SafeNest between dark and light mode.</p>
+                  <div class="footer-actions mt">
+                    <button id="btn-theme-settings" type="button" class="ghost-btn">Toggle dark / light</button>
+                    <span id="theme-label" class="muted"></span>
+                  </div>
+                </section>
+
+                <section class="section-card reveal">
                   <h2>Nest Security</h2>
                   <button id="btn-change-password" type="button" class="ghost-btn mt">Change Nest password</button>
                   <p class="field-label">Auto-lock Nest</p>
@@ -386,7 +415,7 @@
                 <section class="section-card reveal">
                   <h2>Your Nest</h2>
                   <p class="muted">
-                    Private files use protected local storage under your LockedNest data folder.
+                    Private files use protected local storage under your SafeNest data folder.
                     Access is gated by your Nest password. This is not full-disk encryption.
                   </p>
                 </section>
@@ -469,17 +498,14 @@
       </div>
     </div>
 
+    <div id="sn-toast-host" class="sn-toast-host" aria-live="polite"></div>
+
     <section id="lock-screen" class="lock-screen hidden" aria-live="polite">
       <div id="lock-blur" class="lock-blur" aria-hidden="true"></div>
       <div class="lock-veil" aria-hidden="true"></div>
       <div class="lock-card">
-        <div class="lock-glyph" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="28" height="28" fill="none">
-            <path d="M7 11V8a5 5 0 0 1 10 0v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-            <rect x="5" y="11" width="14" height="10" rx="2.5" stroke="currentColor" stroke-width="1.7"/>
-          </svg>
-        </div>
-        <p class="lock-brand">LockedNest</p>
+        <div id="lock-nest" class="nest-boundary nest-boundary--compact" aria-hidden="true"></div>
+        <p class="lock-brand">SafeNest</p>
         <h1>Your Nest is locked</h1>
         <p class="lock-copy">Unlock your Nest to access your private workspace.</p>
         <div class="lock-modules" aria-hidden="true">
@@ -502,6 +528,16 @@
     <script src="../vendor/gsap.min.js"></script>
     <script src="../vendor/lenis.min.js"></script>
     <script src="../shared/atmosphere.js"></script>
+    <script src="../animations/motionConfig.js"></script>
+    <script src="../animations/reducedMotion.js"></script>
+    <script src="../animations/smoothScroll.js"></script>
+    <script src="../animations/nestScene.js"></script>
+    <script src="../animations/pageTransitions.js"></script>
+    <script src="../animations/lockAnimation.js"></script>
+    <script src="../animations/sidebarAnimation.js"></script>
+    <script src="../animations/modalAnimation.js"></script>
+    <script src="../animations/toast.js"></script>
+    <script src="../animations/textReveal.js"></script>
     <script src="../personal/personal.js"></script>
     <script src="shell.js"></script>
   </body>

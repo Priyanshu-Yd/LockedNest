@@ -1,15 +1,3 @@
-:root {
-  --ink: #07090d;
-  --text: #f2efe8;
-  --muted: #9a958a;
-  --accent: #d7ff3c;
-  --accent-ink: #12160a;
-  --danger: #ff6b7a;
-  --line: rgba(232, 226, 214, 0.12);
-  --display: "Syne", "Segoe UI Variable", sans-serif;
-  --sans: "DM Sans", "Segoe UI", sans-serif;
-}
-
 * { box-sizing: border-box; }
 
 html, body {
@@ -28,59 +16,83 @@ html, body {
   pointer-events: none;
 }
 
+.startup {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(ellipse at 50% 42%, #12151c 0%, var(--ink-deep) 68%);
+}
+
+.startup.is-done {
+  pointer-events: none;
+}
+
+.startup-inner {
+  text-align: center;
+  display: grid;
+  gap: 14px;
+  justify-items: center;
+}
+
+.startup-brand {
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.startup-tag {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
 .auth-shell {
   position: relative;
   z-index: 1;
   min-height: 100%;
   display: grid;
   place-items: center;
-  padding: 24px;
+  padding: 28px 20px;
 }
 
-.auth-card {
-  width: min(400px, 100%);
-  border: 1px solid var(--line);
-  border-radius: 28px;
-  background: rgba(14, 18, 24, 0.72);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  padding: 32px 28px 24px;
-  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.4);
+.auth-stage {
+  width: min(420px, 100%);
+  text-align: center;
+  opacity: 0;
 }
 
-.brand-mark {
-  width: 14px;
-  height: 14px;
-  border-radius: 3px;
-  background: var(--accent);
-  box-shadow: 0 0 0 5px rgba(215, 255, 60, 0.12);
-  transform: rotate(12deg);
-  margin-bottom: 18px;
-}
-
-.eyebrow {
-  margin: 0;
+.auth-stage .eyebrow {
+  margin: 18px 0 0;
   color: var(--muted);
-  letter-spacing: 0.16em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
 }
 
-h1 {
-  margin: 8px 0 8px;
+.auth-stage h1 {
+  margin: 10px 0 8px;
   font-family: var(--display);
-  font-size: 2.2rem;
-  letter-spacing: -0.04em;
+  font-size: clamp(1.9rem, 4vw, 2.45rem);
+  letter-spacing: -0.045em;
   line-height: 1.05;
 }
 
 .lede {
-  margin: 0 0 22px;
+  margin: 0 0 28px;
   color: var(--muted);
-  line-height: 1.45;
+  line-height: 1.5;
+  font-size: 1rem;
 }
 
-.form { display: grid; gap: 8px; }
+.form {
+  display: grid;
+  gap: 8px;
+  text-align: left;
+}
 
 label {
   margin-top: 6px;
@@ -91,31 +103,40 @@ label {
 input[type="password"] {
   width: 100%;
   border: 1px solid var(--line);
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.32);
   color: var(--text);
-  border-radius: 12px;
-  padding: 12px 14px;
+  border-radius: 14px;
+  padding: 13px 15px;
   outline: none;
   font: inherit;
+  transition: border-color var(--dur-fast) var(--ease-soft),
+    box-shadow var(--dur-fast) var(--ease-soft),
+    transform var(--dur-fast) var(--ease-soft);
   -webkit-user-select: text;
   user-select: text;
 }
 
 input[type="password"]:focus {
-  border-color: rgba(215, 255, 60, 0.55);
-  box-shadow: 0 0 0 3px rgba(215, 255, 60, 0.12);
+  border-color: rgba(94, 184, 168, 0.55);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  transform: scale(1.015);
 }
 
 .primary-btn {
-  margin-top: 10px;
+  margin-top: 12px;
   border: 0;
   border-radius: 999px;
-  min-height: 44px;
+  min-height: 46px;
   font-weight: 700;
   font-family: var(--sans);
   color: var(--accent-ink);
   background: var(--accent);
   cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease-out), opacity var(--dur-fast) ease;
+}
+
+.primary-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
 }
 
 .primary-btn:disabled {
@@ -124,16 +145,23 @@ input[type="password"]:focus {
 }
 
 .error {
-  margin: 4px 0 0;
+  margin: 6px 0 0;
   color: var(--danger);
   font-size: 0.86rem;
 }
 
 .hint {
-  margin: 18px 0 0;
+  margin: 22px 0 0;
   color: var(--muted);
-  font-size: 0.75rem;
-  line-height: 1.45;
+  font-size: 0.74rem;
+  line-height: 1.5;
+  text-align: center;
 }
 
 .hidden { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  input[type="password"]:focus {
+    transform: none;
+  }
+}

@@ -1,8 +1,8 @@
-# LockedNest
+# SafeNest
 
 **Your private space on any PC.**
 
-LockedNest is a private digital workspace that gives you a protected environment on a shared or office PC. Browser functionality is one part of your Nest — alongside private files, photos, videos, downloads, notes, and clipboard.
+SafeNest is a private digital workspace that gives you a protected environment on a shared or office PC. Browser functionality is one part of your Nest — alongside private files, photos, videos, downloads, notes, and clipboard.
 
 It is **not** a Chrome extension, WhatsApp clone, or remote authentication system.
 
@@ -17,7 +17,7 @@ npm start
 
 | Term | Meaning |
 | --- | --- |
-| **LockedNest** | Product name |
+| **SafeNest** | Product name |
 | **Nest** | Your private workspace on this PC |
 | **Nest password** | Local password that unlocks the Nest |
 | **Lock Nest** | Hide private content without logging sites out |
@@ -38,7 +38,7 @@ Application-level inactivity (`powerMonitor` + Nest activity). **Not** Windows a
 
 ## Security model (honest)
 
-LockedNest is an **application-level privacy layer**.
+SafeNest is an **application-level privacy layer**.
 
 Windows account security remains the primary OS-level protection. An administrator can still access local data.
 

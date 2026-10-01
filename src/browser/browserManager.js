@@ -263,7 +263,7 @@ function authPopupWindowOptions(parentContents) {
     height: 740,
     minWidth: 420,
     minHeight: 560,
-    title: 'Sign in — LockedNest',
+    title: 'Sign in — SafeNest',
     backgroundColor: '#ffffff',
     autoHideMenuBar: true,
     alwaysOnTop: true,
@@ -465,7 +465,7 @@ async function openGoogleAuthWindow(spaceId, startUrl, sourceWebContents) {
         height: 740,
         minWidth: 420,
         minHeight: 560,
-        title: 'Google sign-in — LockedNest',
+        title: 'Google sign-in — SafeNest',
         backgroundColor: '#ffffff',
         autoHideMenuBar: true,
         alwaysOnTop: true,
@@ -637,7 +637,7 @@ function wireContentEvents(view, spaceId) {
 
   wc.on('page-title-updated', (_event, title) => {
     if (browserWindow && !browserWindow.isDestroyed() && activeViewSpaceId === spaceId) {
-      browserWindow.setTitle(`${title} — LockedNest`);
+      browserWindow.setTitle(`${title} — SafeNest`);
       sendShell('browser:title', title);
     }
   });
@@ -858,8 +858,8 @@ function createBrowserWindow() {
     height: 840,
     minWidth: 960,
     minHeight: 640,
-    title: 'LockedNest',
-    backgroundColor: '#0f1419',
+    title: 'SafeNest',
+    backgroundColor: '#0a0c10',
     show: false,
     webPreferences: {
       preload: path.join(__dirname, '..', '..', 'preload.js'),

@@ -50,13 +50,13 @@ function createLoginWindow() {
   }
 
   loginWindow = new BrowserWindow({
-    width: 440,
-    height: 560,
+    width: 480,
+    height: 680,
     resizable: false,
     maximizable: false,
     fullscreenable: false,
-    title: 'LockedNest',
-    backgroundColor: '#0f1419',
+    title: 'SafeNest',
+    backgroundColor: '#0a0c10',
     show: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -81,7 +81,7 @@ function createLoginWindow() {
 function lockMeta() {
   const space = spaceManager.getActiveSpace();
   return {
-    spaceName: space?.name || 'LockedNest',
+    spaceName: space?.name || 'SafeNest',
     spaceId: space?.id || null,
     lastUnlockedAt: getLastUnlockedAt(),
   };
@@ -853,8 +853,8 @@ function registerIpc() {
     const win = browserManager.getBrowserWindow();
     const save = await dialog.showSaveDialog(win && !win.isDestroyed() ? win : undefined, {
       title: 'Export encrypted vault backup',
-      defaultPath: `LockedNest-backup-${new Date().toISOString().slice(0, 10)}.vbak`,
-      filters: [{ name: 'LockedNest Backup', extensions: ['vbak'] }],
+      defaultPath: `SafeNest-backup-${new Date().toISOString().slice(0, 10)}.vbak`,
+      filters: [{ name: 'SafeNest Backup', extensions: ['vbak'] }],
     });
     if (save.canceled || !save.filePath) {
       return { ok: false, cancelled: true };
@@ -886,7 +886,7 @@ function registerIpc() {
     const picked = await dialog.showOpenDialog(win && !win.isDestroyed() ? win : undefined, {
       title: 'Restore encrypted vault backup',
       properties: ['openFile'],
-      filters: [{ name: 'LockedNest Backup', extensions: ['vbak'] }],
+      filters: [{ name: 'SafeNest Backup', extensions: ['vbak'] }],
     });
     if (picked.canceled || !picked.filePaths?.[0]) {
       return { ok: false, cancelled: true };

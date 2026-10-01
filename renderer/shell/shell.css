@@ -1,21 +1,4 @@
-:root {
-  --ink: #07090d;
-  --panel: rgba(14, 18, 24, 0.72);
-  --panel-solid: #10161f;
-  --line: rgba(232, 226, 214, 0.1);
-  --line-strong: rgba(232, 226, 214, 0.18);
-  --text: #f2efe8;
-  --muted: #9a958a;
-  --accent: #d7ff3c;
-  --accent-ink: #12160a;
-  --warm: #ff7a45;
-  --danger: #ff6b7a;
-  --ok: #5dffb1;
-  --radius: 18px;
-  --toolbar: 64px;
-  --display: "Syne", "Segoe UI Variable", sans-serif;
-  --sans: "DM Sans", "Segoe UI", sans-serif;
-}
+/* Tokens live in ../shared/tokens.css */
 
 * { box-sizing: border-box; }
 
@@ -56,7 +39,7 @@ html, body {
   align-items: center;
   padding: 0 16px;
   border-bottom: 1px solid var(--line);
-  background: rgba(7, 9, 13, 0.55);
+  background: var(--toolbar-bg);
   backdrop-filter: blur(18px) saturate(1.1);
   -webkit-backdrop-filter: blur(18px) saturate(1.1);
   -webkit-app-region: drag;
@@ -78,10 +61,9 @@ html, body {
 .brand-mark {
   width: 12px;
   height: 12px;
-  border-radius: 3px;
+  border-radius: 50%;
   background: var(--accent);
-  box-shadow: 0 0 0 4px rgba(215, 255, 60, 0.12);
-  transform: rotate(12deg);
+  box-shadow: 0 0 0 4px var(--accent-soft);
 }
 
 .brand-name {
@@ -116,13 +98,13 @@ html, body {
   display: grid;
   place-items: center;
   color: var(--text);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--control-bg);
   border-color: var(--line);
 }
 
 .ghost-btn {
   color: var(--text);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--control-bg);
   border-color: var(--line);
 }
 
@@ -178,7 +160,7 @@ html, body {
   height: 38px;
   border-radius: 999px;
   border: 1px solid var(--line);
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--input-bg);
   color: var(--text);
   padding: 0 16px;
   font-size: 0.84rem;
@@ -186,7 +168,7 @@ html, body {
 }
 
 .address:focus {
-  border-color: rgba(215, 255, 60, 0.35);
+  border-color: rgba(94, 184, 168, 0.35);
 }
 
 body.is-browsing .scroll-root {
@@ -214,11 +196,58 @@ body.is-browsing .scroll-root {
   height: 36px;
   border-radius: 999px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--control-bg);
   color: var(--text);
   padding: 0 12px;
   max-width: 150px;
   font-family: var(--sans);
+  color-scheme: inherit;
+}
+
+.space-switch select,
+#autolock-options,
+.radio-list,
+select {
+  color-scheme: inherit;
+}
+
+/* Native Windows dropdowns often paint a light popup — force readable options */
+.space-switch select option,
+select option {
+  background-color: var(--option-bg);
+  color: var(--option-text);
+}
+
+.theme-toggle {
+  width: 36px;
+  min-height: 36px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--control-bg);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.theme-toggle:hover {
+  border-color: var(--line-strong);
+  transform: translateY(-1px);
+}
+
+.theme-toggle .icon-sun,
+.theme-toggle .icon-moon {
+  display: none;
+}
+
+html[data-theme="dark"] .theme-toggle .icon-sun,
+html:not([data-theme]) .theme-toggle .icon-sun {
+  display: block;
+}
+
+html[data-theme="light"] .theme-toggle .icon-moon {
+  display: block;
 }
 
 .scroll-root {
@@ -277,6 +306,7 @@ body.is-browsing .scroll-root {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  margin-top: 14px;
   padding: 6px 12px;
   border-radius: 999px;
   border: 1px solid var(--line);
@@ -287,7 +317,7 @@ body.is-browsing .scroll-root {
 }
 
 .status-chip.is-active {
-  color: #102418;
+  color: #0a1210;
   background: var(--ok);
   border-color: transparent;
 }
@@ -329,7 +359,7 @@ body.is-browsing .scroll-root {
   inset: 0;
   background: radial-gradient(
     420px circle at var(--mx, 50%) var(--my, 0%),
-    rgba(215, 255, 60, 0.12),
+    rgba(94, 184, 168, 0.12),
     transparent 42%
   );
   opacity: 0;
@@ -449,7 +479,7 @@ body.is-browsing .scroll-root {
   padding: 10px 12px;
   border-radius: 12px;
   border: 1px solid var(--line);
-  background: rgba(0, 0, 0, 0.18);
+  background: var(--control-bg);
   cursor: pointer;
 }
 
@@ -542,7 +572,7 @@ body.is-browsing .scroll-root {
 .modal-card input[type="password"] {
   width: 100%;
   border: 1px solid var(--line);
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--input-bg);
   color: var(--text);
   border-radius: 12px;
   padding: 12px 14px;
@@ -611,8 +641,8 @@ body.is-locked .app-shell { visibility: hidden; }
   place-items: center;
   border-radius: 18px;
   color: var(--accent);
-  border: 1px solid rgba(215, 255, 60, 0.28);
-  background: rgba(215, 255, 60, 0.08);
+  border: 1px solid rgba(94, 184, 168, 0.28);
+  background: rgba(94, 184, 168, 0.08);
 }
 
 .lock-brand {
@@ -663,7 +693,7 @@ body.is-locked .app-shell { visibility: hidden; }
 #unlock-password {
   width: 100%;
   border: 1px solid var(--line);
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--input-bg);
   color: var(--text);
   border-radius: 12px;
   padding: 12px 14px;
@@ -674,8 +704,53 @@ body.is-locked .app-shell { visibility: hidden; }
 #unlock-password:focus,
 .modal-card input:focus,
 .address:focus {
-  border-color: rgba(215, 255, 60, 0.55);
-  box-shadow: 0 0 0 3px rgba(215, 255, 60, 0.12);
+  border-color: rgba(94, 184, 168, 0.55);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.sn-toast-host {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.sn-toast {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 200px;
+  max-width: min(360px, calc(100vw - 40px));
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--line-strong);
+  background: var(--panel-elevated);
+  backdrop-filter: blur(16px);
+  color: var(--text);
+  font-size: 0.88rem;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+}
+
+.sn-toast-mark {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  flex: 0 0 auto;
+}
+
+.sn-toast.is-error .sn-toast-mark {
+  background: rgba(212, 120, 132, 0.16);
+  color: var(--danger);
 }
 
 @media (max-width: 980px) {
@@ -692,4 +767,5 @@ body.is-locked .app-shell { visibility: hidden; }
   .stat-grid,
   .tile-grid { grid-template-columns: 1fr; }
   .panel { width: min(100%, calc(100% - 28px)); padding-top: 24px; }
+  .nest-boundary--float { display: none; }
 }

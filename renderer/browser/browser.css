@@ -1,23 +1,21 @@
 :root {
-  --bar: #121a24;
-  --line: rgba(148, 163, 184, 0.16);
-  --text: #e8eef7;
-  --muted: #8fa0b5;
-  --btn: #1b2633;
-  --btn-hover: #243244;
-  --accent: #3d9cf0;
-  --accent-hover: #5aadf5;
-  --danger: #f07178;
-  --input: #0d1520;
-  --font: "Segoe UI", "Candara", "Gill Sans", sans-serif;
+  --bar: #12151c;
+  --line: rgba(235, 230, 220, 0.1);
+  --text: #ebe6dc;
+  --muted: #8b8790;
+  --btn: #1a1f28;
+  --btn-hover: #222833;
+  --accent: #5eb8a8;
+  --accent-ink: #0a1210;
+  --danger: #d47884;
+  --input: #0a0c10;
+  --font: "DM Sans", "Segoe UI", sans-serif;
+  --display: "Syne", "Segoe UI Variable", sans-serif;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
-html,
-body {
+html, body {
   margin: 0;
   height: 100%;
   overflow: hidden;
@@ -34,7 +32,7 @@ body {
   align-items: center;
   padding: 8px 12px;
   border-bottom: 1px solid var(--line);
-  background: linear-gradient(180deg, #162131, var(--bar));
+  background: linear-gradient(180deg, #161a22, var(--bar));
   -webkit-app-region: drag;
 }
 
@@ -49,56 +47,54 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.85rem;
-  font-weight: 650;
-  letter-spacing: 0.01em;
-  color: var(--text);
-  padding: 0 4px;
+  font-family: var(--display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-size: 0.92rem;
 }
 
-.dot {
+.brand-chip .dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: var(--accent);
-  box-shadow: 0 0 0 3px rgba(61, 156, 240, 0.18);
+  box-shadow: 0 0 0 3px rgba(94, 184, 168, 0.18);
 }
 
-.nav {
-  display: inline-flex;
-  gap: 4px;
-}
+.nav { display: inline-flex; gap: 6px; }
 
-button {
+.nav button,
+#btn-lock,
+#btn-settings {
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
   border: 1px solid var(--line);
   background: var(--btn);
   color: var(--text);
-  border-radius: 8px;
-  min-width: 34px;
-  height: 34px;
-  padding: 0 10px;
-  font-size: 0.95rem;
   cursor: pointer;
+  font: inherit;
 }
 
-button:hover:not(:disabled) {
+.nav button {
+  min-width: 34px;
+  padding: 0;
+}
+
+.nav button:hover,
+#btn-lock:hover {
   background: var(--btn-hover);
 }
 
-button:disabled {
-  opacity: 0.45;
-  cursor: default;
-}
-
 .address {
+  width: 100%;
   height: 34px;
-  border-radius: 8px;
+  border-radius: 999px;
   border: 1px solid var(--line);
-  background: #0d1520;
+  background: var(--input);
   color: var(--muted);
-  padding: 0 12px;
-  font-size: 0.86rem;
-  outline: none;
+  padding: 0 14px;
+  font: inherit;
 }
 
 .actions {
@@ -107,32 +103,23 @@ button:disabled {
   gap: 8px;
 }
 
-.actions > button {
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
 .autolock {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .autolock select {
-  height: 34px;
-  border-radius: 8px;
+  height: 32px;
+  border-radius: 999px;
   border: 1px solid var(--line);
   background: var(--btn);
   color: var(--text);
-  padding: 0 8px;
-  font-size: 0.78rem;
-  outline: none;
-}
-
-body.is-locked .toolbar {
-  visibility: hidden;
+  padding: 0 10px;
 }
 
 .lock-screen {
@@ -141,72 +128,56 @@ body.is-locked .toolbar {
   z-index: 1000;
   display: grid;
   place-items: center;
-  padding: 24px;
   overflow: hidden;
-  background: #0b1016;
-}
-
-.lock-screen.hidden {
-  display: none;
 }
 
 .lock-blur {
   position: absolute;
   inset: -24px;
-  background-color: #0b1016;
-  background-position: center;
-  background-size: cover;
-  background-repeat: no-repeat;
-  filter: blur(22px) saturate(1.05);
-  transform: scale(1.08);
+  background: #0a0c10 center / cover no-repeat;
+  filter: blur(22px);
+  transform: scale(1.06);
 }
 
 .lock-veil {
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(circle at center, rgba(8, 14, 22, 0.35), rgba(8, 14, 22, 0.72) 55%, rgba(8, 14, 22, 0.88)),
-    linear-gradient(180deg, rgba(10, 16, 24, 0.45), rgba(10, 16, 24, 0.7));
-  backdrop-filter: blur(2px);
+  background: radial-gradient(circle at 50% 40%, rgba(10, 12, 16, 0.25), rgba(10, 12, 16, 0.92));
 }
 
 .lock-card {
   position: relative;
   z-index: 1;
-  width: min(380px, 100%);
-  border: 1px solid rgba(232, 238, 247, 0.14);
-  border-radius: 18px;
-  background: rgba(16, 24, 34, 0.72);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(18px) saturate(1.2);
-  -webkit-backdrop-filter: blur(18px) saturate(1.2);
-  padding: 28px 26px 24px;
+  width: min(380px, calc(100% - 32px));
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: rgba(18, 21, 28, 0.88);
+  backdrop-filter: blur(18px);
+  padding: 28px;
   text-align: center;
 }
 
 .lock-icon {
-  width: 68px;
-  height: 68px;
-  margin: 0 auto 14px;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 12px;
   display: grid;
   place-items: center;
-  border-radius: 18px;
+  border-radius: 16px;
   color: var(--accent);
-  background: rgba(61, 156, 240, 0.12);
-  border: 1px solid rgba(61, 156, 240, 0.25);
+  border: 1px solid rgba(94, 184, 168, 0.28);
+  background: rgba(94, 184, 168, 0.08);
 }
 
 .lock-card h1 {
-  margin: 0;
-  font-size: 1.35rem;
-  font-weight: 650;
+  margin: 0 0 8px;
+  font-family: var(--display);
+  letter-spacing: -0.03em;
 }
 
 .lock-copy {
-  margin: 8px 0 18px;
+  margin: 0 0 16px;
   color: var(--muted);
-  font-size: 0.9rem;
-  line-height: 1.4;
 }
 
 #unlock-form {
@@ -216,8 +187,8 @@ body.is-locked .toolbar {
 }
 
 #unlock-form label {
-  font-size: 0.82rem;
   color: var(--muted);
+  font-size: 0.8rem;
 }
 
 #unlock-password {
@@ -225,33 +196,26 @@ body.is-locked .toolbar {
   border: 1px solid var(--line);
   background: var(--input);
   color: var(--text);
-  border-radius: 10px;
-  padding: 11px 12px;
-  font-size: 0.95rem;
-  outline: none;
-}
-
-#unlock-password:focus {
-  border-color: rgba(61, 156, 240, 0.7);
-  box-shadow: 0 0 0 3px rgba(61, 156, 240, 0.15);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font: inherit;
 }
 
 #unlock-btn {
   margin-top: 6px;
+  min-height: 42px;
   border: 0;
+  border-radius: 999px;
   background: var(--accent);
-  color: #061018;
-  font-weight: 650;
-  height: 40px;
-}
-
-#unlock-btn:hover:not(:disabled) {
-  background: var(--accent-hover);
+  color: var(--accent-ink);
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .error {
-  margin: 0;
   color: var(--danger);
-  font-size: 0.85rem;
-  min-height: 1.2em;
+  font-size: 0.86rem;
+  margin: 0;
 }
+
+.hidden { display: none !important; }

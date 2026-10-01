@@ -1,6 +1,7 @@
-/* Nest accents — uses LockedNest fonts only (no scraped brand fonts). */
+/* Nest accents — uses SafeNest fonts only (no scraped brand fonts). */
 
 .side-nav {
+  position: relative;
   width: 196px;
   flex: 0 0 auto;
   display: flex;
@@ -8,7 +9,27 @@
   gap: 4px;
   padding: 16px 12px;
   border-right: 1px solid var(--line);
-  background: rgba(7, 9, 13, 0.35);
+  background: var(--nav-bg);
+}
+
+.side-nav-indicator {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 0;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  border: 1px solid rgba(94, 184, 168, 0.2);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 0;
+  will-change: transform, height;
+}
+
+.side-nav > :not(.side-nav-indicator) {
+  position: relative;
+  z-index: 1;
 }
 
 .side-nav-brand {
@@ -52,8 +73,8 @@
 
 .side-link.is-active {
   color: var(--text);
-  background: rgba(215, 255, 60, 0.08);
-  border-color: rgba(215, 255, 60, 0.18);
+  background: transparent;
+  border-color: transparent;
 }
 
 .side-link .nav-ico {
@@ -264,7 +285,7 @@
   border-radius: 10px;
   display: grid;
   place-items: center;
-  background: rgba(215, 255, 60, 0.1);
+  background: rgba(94, 184, 168, 0.1);
   color: var(--accent);
   font-size: 0.72rem;
   font-weight: 700;
@@ -291,7 +312,7 @@
   border-radius: 16px;
   border: 1px solid var(--line);
   background:
-    linear-gradient(145deg, rgba(215, 255, 60, 0.08), rgba(255, 255, 255, 0.02)),
+    linear-gradient(145deg, rgba(94, 184, 168, 0.08), rgba(255, 255, 255, 0.02)),
     rgba(255, 255, 255, 0.03);
   display: flex;
   flex-direction: column;
@@ -312,16 +333,28 @@
   display: grid;
   place-items: center;
   text-align: center;
-  gap: 8px;
-  padding: 48px 20px;
-  border: 1px dashed var(--line-strong);
-  border-radius: var(--radius);
+  gap: 10px;
+  padding: 56px 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg, 26px);
   color: var(--muted);
+  background:
+    radial-gradient(circle at 50% 30%, rgba(94, 184, 168, 0.08), transparent 55%),
+    rgba(255, 255, 255, 0.02);
 }
 
 .empty-state .empty-glyph {
-  font-size: 1.8rem;
+  width: 64px;
+  height: 64px;
   margin-bottom: 4px;
+  border-radius: 20px;
+  display: grid;
+  place-items: center;
+  font-size: 1.5rem;
+  border: 1px solid rgba(94, 184, 168, 0.22);
+  background: rgba(94, 184, 168, 0.08);
+  color: var(--accent);
+  animation: empty-breathe 3.6s ease-in-out infinite;
 }
 
 .empty-state strong {
@@ -329,6 +362,17 @@
   font-family: var(--display);
   font-size: 1.15rem;
   letter-spacing: -0.02em;
+}
+
+@keyframes empty-breathe {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(94, 184, 168, 0.12); }
+  50% { transform: scale(1.04); box-shadow: 0 0 0 8px rgba(94, 184, 168, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .empty-state .empty-glyph {
+    animation: none;
+  }
 }
 
 .lock-modules {
@@ -357,8 +401,8 @@
   margin-top: 28px;
   padding: 18px 20px;
   border-radius: var(--radius);
-  border: 1px solid rgba(215, 255, 60, 0.18);
-  background: rgba(215, 255, 60, 0.06);
+  border: 1px solid rgba(94, 184, 168, 0.18);
+  background: rgba(94, 184, 168, 0.06);
 }
 
 .browser-download-note strong {
@@ -404,8 +448,8 @@
 }
 
 .drop-zone.is-active {
-  border-color: rgba(215, 255, 60, 0.55);
-  background: rgba(215, 255, 60, 0.06);
+  border-color: rgba(94, 184, 168, 0.55);
+  background: rgba(94, 184, 168, 0.06);
   color: var(--text);
 }
 
@@ -425,11 +469,20 @@
   z-index: 40;
   display: flex;
   flex-direction: column;
-  background: rgba(5, 7, 10, 0.94);
+  background: rgba(10, 12, 16, 0.94);
+  opacity: 0;
+  transform: scale(0.98);
+  transition: opacity 220ms var(--ease-out, ease), transform 220ms var(--ease-out, ease);
+}
+
+.media-viewer.is-open {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .media-viewer.hidden {
   display: none;
+  opacity: 0;
 }
 
 .media-viewer-bar {
@@ -465,7 +518,7 @@
 .photo-tile {
   border: 1px solid var(--line);
   background:
-    linear-gradient(145deg, rgba(215, 255, 60, 0.08), rgba(255, 255, 255, 0.02)),
+    linear-gradient(145deg, rgba(94, 184, 168, 0.08), rgba(255, 255, 255, 0.02)),
     rgba(255, 255, 255, 0.03);
   color: var(--text);
   cursor: pointer;
@@ -516,8 +569,8 @@
 }
 
 .note-row.is-active {
-  border-color: rgba(215, 255, 60, 0.28);
-  background: rgba(215, 255, 60, 0.08);
+  border-color: rgba(94, 184, 168, 0.28);
+  background: rgba(94, 184, 168, 0.08);
 }
 
 .notes-editor {

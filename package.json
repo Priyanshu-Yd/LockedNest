@@ -1,8 +1,8 @@
 {
   "name": "vaultbrowse",
-  "productName": "LockedNest",
+  "productName": "SafeNest",
   "version": "1.0.0",
-  "description": "LockedNest — your private digital workspace on any PC. Browser, files, and protected Nest spaces behind a local password.",
+  "description": "SafeNest — your private digital workspace on any PC. Browser, files, and protected Nest spaces behind a local password.",
   "main": "main.js",
   "scripts": {
     "start": "electron .",

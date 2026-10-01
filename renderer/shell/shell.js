@@ -65,13 +65,39 @@ let modalHandler = null;
 let lenis = null;
 let introPlayed = false;
 let privateSpaceId = 'personal';
+let sidebarMotion = null;
+let homeNest = null;
+let lockNest = null;
+let unlockAnimating = false;
 
 if (typeof window.createAtmosphere === 'function') {
   window.createAtmosphere(document.getElementById('atmosphere'));
 }
 
+if (window.SafeNestMotion?.createNestScene) {
+  homeNest = window.SafeNestMotion.createNestScene(document.getElementById('home-nest'), {
+    state: 'open',
+  });
+  lockNest = window.SafeNestMotion.createNestScene(document.getElementById('lock-nest'), {
+    state: 'locked',
+  });
+  window.SafeNestMotion._lockNest = lockNest;
+}
+
+if (window.SafeNestMotion?.initSidebar) {
+  sidebarMotion = window.SafeNestMotion.initSidebar(sideNav);
+}
+
 function initLenis() {
-  if (typeof Lenis !== 'function' || lenis) return;
+  if (lenis) return;
+  if (window.SafeNestMotion?.initSmoothScroll) {
+    lenis = window.SafeNestMotion.initSmoothScroll(
+      scrollRoot,
+      document.getElementById('scroll-content')
+    );
+    return;
+  }
+  if (typeof Lenis !== 'function') return;
   lenis = new Lenis({
     wrapper: scrollRoot,
     content: document.getElementById('scroll-content'),
@@ -87,8 +113,13 @@ function initLenis() {
 }
 
 function playIntro() {
-  if (introPlayed || typeof gsap === 'undefined') return;
+  if (introPlayed) return;
   introPlayed = true;
+  if (window.SafeNestMotion?.homeEntrance) {
+    window.SafeNestMotion.homeEntrance(dashboard);
+    return;
+  }
+  if (typeof gsap === 'undefined') return;
   const items = document.querySelectorAll('.reveal');
   gsap.set(items, { y: 28, opacity: 0 });
   gsap.to(items, {
@@ -99,6 +130,13 @@ function playIntro() {
     stagger: 0.08,
     delay: 0.05,
   });
+}
+
+function nestStateForMode(mode) {
+  if (mode === 'dashboard') return 'open';
+  if (mode === 'settings') return 'protect';
+  if (mode === 'browser' || mode === 'browserHub') return 'explore';
+  return 'idle';
 }
 
 function bindSpotlight(root) {
@@ -139,10 +177,17 @@ function formatTime(iso) {
 }
 
 function closeModal() {
-  modal.classList.add('hidden');
-  modalBody.innerHTML = '';
-  showErrorEl(modalError, '');
-  modalHandler = null;
+  const finish = () => {
+    modal.classList.add('hidden');
+    modalBody.innerHTML = '';
+    showErrorEl(modalError, '');
+    modalHandler = null;
+  };
+  if (window.SafeNestMotion?.closeModalMotion && !modal.classList.contains('hidden')) {
+    window.SafeNestMotion.closeModalMotion('.modal-card', finish);
+    return;
+  }
+  finish();
 }
 
 function openModal({ title, bodyHtml, confirmLabel, onConfirm }) {
@@ -152,7 +197,9 @@ function openModal({ title, bodyHtml, confirmLabel, onConfirm }) {
   showErrorEl(modalError, '');
   modalHandler = onConfirm;
   modal.classList.remove('hidden');
-  if (typeof gsap !== 'undefined') {
+  if (window.SafeNestMotion?.openModalMotion) {
+    window.SafeNestMotion.openModalMotion('.modal-card');
+  } else if (typeof gsap !== 'undefined') {
     gsap.fromTo(
       '.modal-card',
       { y: 18, opacity: 0, scale: 0.98 },
@@ -187,6 +234,7 @@ function setSideNavActive(mode) {
       key === navMode || (navMode === 'dashboard' && key === 'dashboard')
     );
   });
+  sidebarMotion?.setActive(navMode);
 }
 
 function applyMode(mode) {
@@ -207,10 +255,23 @@ function applyMode(mode) {
   sideNav?.classList.remove('hidden');
   document.body.classList.toggle('is-browsing', browsing);
   setSideNavActive(shellMode);
+  homeNest?.setState(nestStateForMode(shellMode));
 
-  if (!browsing) {
+  const visiblePanel =
+    shellMode === 'dashboard'
+      ? dashboard
+      : shellMode === 'settings'
+        ? settings
+        : personal || null;
+
+  if (!browsing && visiblePanel) {
     requestAnimationFrame(() => {
-      playIntro();
+      if (shellMode === 'dashboard') {
+        introPlayed = false;
+        playIntro();
+      } else if (window.SafeNestMotion?.navTransition) {
+        window.SafeNestMotion.navTransition(visiblePanel);
+      }
       bindSpotlight(document);
     });
     if (personal && shellMode === 'notes') {
@@ -269,7 +330,7 @@ function renderBrowserHub(spaces, activeSpaceId, services, recent) {
       btn.type = 'button';
       btn.className = 'service-card spotlight';
       btn.dataset.type = service.id;
-      btn.style.setProperty('--service-accent', service.accent || '#d7ff3c');
+      btn.style.setProperty('--service-accent', service.accent || '#5eb8a8');
       btn.innerHTML = `
         <span class="service-mark">${escapeHtml(service.mark || '?')}</span>
         <span class="service-name">${escapeHtml(service.name)}</span>
@@ -572,7 +633,28 @@ async function runImport(category) {
     category,
     `Imported ${result.imported.length} file${result.imported.length === 1 ? '' : 's'}.`
   );
+  if (window.SafeNestMotion?.toast) {
+    window.SafeNestMotion.toast(
+      result.imported.length === 1
+        ? 'File added to Nest'
+        : `${result.imported.length} files added to Nest`
+    );
+  }
   await loadLibrary(category);
+  if (window.SafeNestMotion?.canAnimate()) {
+    requestAnimationFrame(() => {
+      const rows = document.querySelectorAll(
+        `#${category}-list .file-row, #${category}-list .photo-tile`
+      );
+      if (rows.length) {
+        gsap.fromTo(
+          rows,
+          { y: 12, opacity: 0, scale: 0.98 },
+          { y: 0, opacity: 1, scale: 1, duration: 0.35, stagger: 0.03, ease: 'power3.out' }
+        );
+      }
+    });
+  }
   await refreshAll();
 }
 
@@ -596,6 +678,13 @@ async function runDropImport(category, paths) {
     category,
     `Imported ${result.imported.length} file${result.imported.length === 1 ? '' : 's'}.`
   );
+  if (window.SafeNestMotion?.toast) {
+    window.SafeNestMotion.toast(
+      result.imported.length === 1
+        ? 'File entered your Nest'
+        : `${result.imported.length} files entered your Nest`
+    );
+  }
   await loadLibrary(category);
   await refreshAll();
 }
@@ -640,9 +729,10 @@ function confirmDelete(category, item) {
 }
 
 function applyLockState(state) {
+  // Security state first — visuals never delay locking.
+  const wasLocked = isLocked;
   isLocked = Boolean(state?.locked);
   document.body.classList.toggle('is-locked', isLocked);
-  lockScreen.classList.toggle('hidden', !isLocked);
 
   if (state?.autoLock) {
     statAutolock.textContent = state.autoLock.enabled
@@ -664,31 +754,64 @@ function applyLockState(state) {
   }
 
   if (isLocked) {
+    lockScreen.classList.remove('hidden');
+    lockScreen.style.opacity = '';
     window.VaultPersonal?.clearMediaViewers();
     const clipInput = document.getElementById('clipboard-input');
     if (clipInput) clipInput.value = '';
     if (greetingTitle) greetingTitle.textContent = 'Your Nest is locked';
     statusChip?.classList.remove('is-active');
     statusChip?.classList.add('is-locked');
+    if (statusChip) statusChip.textContent = 'Locked';
     unlockPassword.value = '';
     showErrorEl(unlockError, '');
     unlockBtn.disabled = false;
-    if (typeof gsap !== 'undefined') {
-      gsap.fromTo(
-        '.lock-card',
-        { y: 24, opacity: 0, scale: 0.97 },
-        { y: 0, opacity: 1, scale: 1, duration: 0.45, ease: 'power3.out' }
-      );
+    homeNest?.setState('locked');
+    lockNest?.setState('locked');
+    if (window.SafeNestMotion?.playLock) {
+      window.SafeNestMotion.playLock({
+        panic: Boolean(state?.panic || state?.reason === 'panic'),
+        nest: lockNest,
+      });
     }
     setTimeout(() => unlockPassword.focus(), 40);
-  } else {
-    setBlurBackground(null);
-    if (greetingTitle && window.VaultPersonal) {
-      greetingTitle.textContent = window.VaultPersonal.greetingForNow();
-    }
-    statusChip?.classList.add('is-active');
-    statusChip?.classList.remove('is-locked');
+    return;
   }
+
+  // Unlocked — restore chrome; animate lock screen away if it was showing.
+  statusChip?.classList.add('is-active');
+  statusChip?.classList.remove('is-locked');
+  if (statusChip) statusChip.textContent = 'Protected';
+  if (greetingTitle && window.VaultPersonal) {
+    greetingTitle.textContent = window.VaultPersonal.greetingForNow();
+  }
+  homeNest?.setState(nestStateForMode(shellMode));
+
+  const finishUnlockVisual = () => {
+    lockScreen.classList.add('hidden');
+    lockScreen.style.opacity = '';
+    setBlurBackground(null);
+    unlockBtn.disabled = false;
+    unlockAnimating = false;
+    if (!introPlayed) playIntro();
+  };
+
+  // refreshAll may re-enter while unlock animation is running
+  if (unlockAnimating) {
+    return;
+  }
+
+  if (wasLocked && window.SafeNestMotion?.playUnlock) {
+    unlockAnimating = true;
+    lockNest?.setState('open');
+    window.SafeNestMotion.playUnlock({ nest: lockNest }).then(() => {
+      introPlayed = false;
+      finishUnlockVisual();
+    });
+    return;
+  }
+
+  finishUnlockVisual();
 }
 
 async function refreshAll() {
@@ -1271,18 +1394,27 @@ unlockForm.addEventListener('submit', async (event) => {
   try {
     const result = await window.vaultbrowse.unlock(unlockPassword.value);
     if (!result?.ok) {
-      showErrorEl(unlockError, result?.error || 'Incorrect password.');
+      const message = result?.error || 'Incorrect password. Try again.';
+      if (window.SafeNestMotion?.wrongPassword) {
+        window.SafeNestMotion.wrongPassword(lockNest, unlockError, message);
+      } else {
+        showErrorEl(unlockError, message);
+      }
       unlockPassword.value = '';
       unlockPassword.focus();
       unlockBtn.disabled = false;
       return;
     }
+    // onLockChange → applyLockState handles unlock animation + refreshAll below
     await refreshAll();
   } catch {
     showErrorEl(unlockError, 'Could not unlock your Nest.');
     unlockBtn.disabled = false;
   }
 });
+
+unlockPassword?.addEventListener('focus', () => lockNest?.focus());
+unlockPassword?.addEventListener('blur', () => lockNest?.blur());
 
 window.vaultbrowse.onUrlChange((url) => {
   if (typeof url === 'string') address.value = url;
@@ -1334,6 +1466,38 @@ function pingActivity() {
 
 initLenis();
 applyMode('dashboard');
+
+function syncThemeLabel(theme) {
+  const label = document.getElementById('theme-label');
+  if (label) {
+    label.textContent = theme === 'light' ? 'Light mode' : 'Dark mode';
+  }
+  const btn = document.getElementById('btn-theme');
+  if (btn) {
+    btn.title = theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode';
+    btn.setAttribute(
+      'aria-label',
+      theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'
+    );
+  }
+}
+
+function bindThemeControls() {
+  if (!window.SafeNestTheme) return;
+  syncThemeLabel(window.SafeNestTheme.get());
+  window.SafeNestTheme.onChange(syncThemeLabel);
+  const toggle = () => {
+    const next = window.SafeNestTheme.toggle();
+    if (window.SafeNestMotion?.toast) {
+      window.SafeNestMotion.toast(next === 'light' ? 'Light mode on' : 'Dark mode on');
+    }
+  };
+  document.getElementById('btn-theme')?.addEventListener('click', toggle);
+  document.getElementById('btn-theme-settings')?.addEventListener('click', toggle);
+}
+
+bindThemeControls();
+
 refreshAll().then(() => {
   playIntro();
   bindSpotlight(document);

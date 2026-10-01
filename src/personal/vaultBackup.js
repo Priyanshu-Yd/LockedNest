@@ -120,7 +120,7 @@ function decryptBackup(password, buffer) {
     return { ok: false, error: 'Backup file is invalid.' };
   }
   if (!buffer.subarray(0, 4).equals(MAGIC)) {
-    return { ok: false, error: 'Not a LockedNest backup file.' };
+    return { ok: false, error: 'Not a SafeNest backup file.' };
   }
   const salt = buffer.subarray(4, 20);
   const iv = buffer.subarray(20, 32);

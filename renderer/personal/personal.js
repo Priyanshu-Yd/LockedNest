@@ -71,7 +71,7 @@ window.VaultPersonal = (() => {
       btn.type = 'button';
       btn.className = 'service-card spotlight';
       btn.dataset.type = service.id;
-      btn.style.setProperty('--service-accent', service.accent || '#d7ff3c');
+      btn.style.setProperty('--service-accent', service.accent || '#5eb8a8');
       btn.innerHTML = `
         <span class="service-mark">${escapeHtml(service.mark || '?')}</span>
         <span class="service-name">${escapeHtml(service.name)}</span>
@@ -109,6 +109,8 @@ window.VaultPersonal = (() => {
     const videoViewer = document.getElementById('video-viewer');
     const img = document.getElementById('photo-viewer-img');
     const video = document.getElementById('video-viewer-el');
+    photoViewer?.classList.remove('is-open');
+    videoViewer?.classList.remove('is-open');
     photoViewer?.classList.add('hidden');
     videoViewer?.classList.add('hidden');
     if (img) {
@@ -152,6 +154,7 @@ window.VaultPersonal = (() => {
       img.src = media.url;
     }
     viewer?.classList.remove('hidden');
+    requestAnimationFrame(() => viewer?.classList.add('is-open'));
   }
 
   async function openPhotoViewer(items, startItem) {
@@ -182,6 +185,7 @@ window.VaultPersonal = (() => {
       video.play().catch(() => {});
     }
     viewer?.classList.remove('hidden');
+    requestAnimationFrame(() => viewer?.classList.add('is-open'));
   }
 
   function renderFileList(category, items, handlers = {}) {

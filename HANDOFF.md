@@ -1,14 +1,14 @@
-# LockedNest — Project Handoff Log
+# SafeNest — Project Handoff Log
 
-**Product:** LockedNest — Your private space on any PC.  
-**Former name:** VaultBrowse (kept in some internal/compatibility identifiers).
+**Product:** SafeNest — Your private space on any PC.  
+**Former names:** LockedNest / PrivateNest (UI only). VaultBrowse kept in some internal/compatibility identifiers.
 
 Use this document when reviewing the app or adding features in Cursor.
 **Do not rebuild from scratch.** Extend the existing architecture.
 
 ---
 
-## 1. What LockedNest Is
+## 1. What SafeNest Is
 
 Windows desktop app (Electron + Chromium) that provides a **private digital Nest** on a PC:
 
@@ -28,7 +28,7 @@ Threat model (honest):
 ## 2. Branding rules (canonical UI phrases)
 
 ```text
-LockedNest
+SafeNest
 Your private space on any PC.
 Unlock Nest
 Lock Nest
@@ -37,7 +37,7 @@ Enter your Nest password
 Welcome to your Nest
 ```
 
-Do **not** show “VaultBrowse” in the UI.
+Do **not** show “VaultBrowse”, “LockedNest”, or “PrivateNest” in the UI.
 
 ---
 
@@ -68,7 +68,7 @@ Stack: Electron, vanilla JS/HTML/CSS, Node (main process only). **No React. No b
 ## 4. App Flow
 
 ```text
-LockedNest
+SafeNest
     → Unlock Nest / Create Nest
     → Home (Welcome to your Nest)
         → Browser / Files / Photos / Videos / Downloads / …
@@ -112,10 +112,10 @@ See previous feature sections for function tables and IPC (`window.vaultbrowse`)
 
 ## 7. Suggested Cursor prompt
 
-> Read `HANDOFF.md`. Product is **LockedNest** (Nest terminology in UI).  
+> Read `HANDOFF.md`. Product is **SafeNest** (Nest terminology in UI).  
 > Do not rebuild. Do not rename `userData`, `PrivateSpace/`, IPC, or partitions.  
 > Task: \<feature\>. Reuse existing modules and keep Nest branding in user-facing strings.
 
 ---
 
-*Branding migrated from VaultBrowse → LockedNest. Internal compatibility names retained.*
+*Branding migrated VaultBrowse → LockedNest → SafeNest. Internal compatibility names retained.*
