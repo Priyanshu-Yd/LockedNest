@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none';"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LockedNest</title>
+    <link rel="stylesheet" href="browser.css" />
+  </head>
+  <body>
+    <header class="toolbar">
+      <div class="brand-chip" title="LockedNest">
+        <span class="dot" aria-hidden="true"></span>
+        <span>LockedNest</span>
+      </div>
+
+      <div class="nav">
+        <button id="btn-back" type="button" title="Back" aria-label="Back">←</button>
+        <button id="btn-forward" type="button" title="Forward" aria-label="Forward">→</button>
+        <button id="btn-reload" type="button" title="Reload" aria-label="Reload">⟳</button>
+      </div>
+
+      <input
+        id="address"
+        class="address"
+        type="text"
+        readonly
+        spellcheck="false"
+        value="https://web.whatsapp.com/"
+        aria-label="Address"
+      />
+
+      <div class="actions">
+        <label class="autolock" title="Auto-lock after inactivity">
+          <span>Auto-lock</span>
+          <select id="auto-lock" aria-label="Auto-lock timeout">
+            <option value="0">Off</option>
+            <option value="1">1 min</option>
+            <option value="5">5 min</option>
+            <option value="15">15 min</option>
+            <option value="30">30 min</option>
+            <option value="60">1 hour</option>
+          </select>
+        </label>
+        <button id="btn-lock" type="button" title="Lock Nest (Ctrl+Shift+L)">
+          Lock Nest
+        </button>
+        <button id="btn-settings" type="button" disabled title="Settings (Phase 4)">
+          Settings
+        </button>
+      </div>
+    </header>
+
+    <section id="lock-screen" class="lock-screen hidden" aria-live="polite">
+      <div id="lock-blur" class="lock-blur" aria-hidden="true"></div>
+      <div class="lock-veil" aria-hidden="true"></div>
+      <div class="lock-card">
+        <div class="lock-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="40" height="40" fill="none">
+            <path
+              d="M7 11V8a5 5 0 0 1 10 0v3"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            />
+            <rect
+              x="5"
+              y="11"
+              width="14"
+              height="10"
+              rx="2.5"
+              stroke="currentColor"
+              stroke-width="1.8"
+            />
+            <circle cx="12" cy="16" r="1.4" fill="currentColor" />
+          </svg>
+        </div>
+        <h1>Your Nest is locked</h1>
+        <p class="lock-copy">Enter your Nest password to continue.</p>
+        <form id="unlock-form" autocomplete="off">
+          <label for="unlock-password">Nest password</label>
+          <input
+            id="unlock-password"
+            type="password"
+            autocomplete="current-password"
+            required
+          />
+          <p id="unlock-error" class="error" role="alert" hidden></p>
+          <button id="unlock-btn" type="submit">Unlock</button>
+        </form>
+      </div>
+    </section>
+
+    <script src="browser.js"></script>
+  </body>
+</html>

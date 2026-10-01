@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:; font-src 'self'; base-uri 'none'; form-action 'none';"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LockedNest</title>
+    <link rel="stylesheet" href="../shared/fonts.css" />
+    <link rel="stylesheet" href="login.css" />
+  </head>
+  <body>
+    <canvas id="atmosphere" class="atmosphere" aria-hidden="true"></canvas>
+
+    <main class="auth-shell">
+      <section class="auth-card">
+        <div class="brand-mark" aria-hidden="true"></div>
+        <p class="eyebrow">LockedNest</p>
+        <h1 id="subtitle">Loading…</h1>
+        <p id="lede" class="lede">Your private space on any PC.</p>
+
+        <form id="auth-form" class="form" autocomplete="off">
+          <div id="create-fields" class="hidden">
+            <label for="password">Nest password</label>
+            <input id="password" name="password" type="password" minlength="6" autocomplete="new-password" required />
+            <label for="confirm">Confirm Nest password</label>
+            <input id="confirm" name="confirm" type="password" minlength="6" autocomplete="new-password" />
+          </div>
+
+          <div id="unlock-fields" class="hidden">
+            <label for="unlock-password">Nest password</label>
+            <input id="unlock-password" name="unlock-password" type="password" autocomplete="current-password" required />
+          </div>
+
+          <p id="error" class="error" role="alert" hidden></p>
+          <button id="submit-btn" class="primary-btn" type="submit" disabled>Continue</button>
+        </form>
+
+        <p class="hint">
+          Nest passwords are never stored. A local verifier is derived with PBKDF2 and
+          protected with Windows secure storage when available.
+        </p>
+      </section>
+    </main>
+
+    <script src="../vendor/gsap.min.js"></script>
+    <script src="../shared/atmosphere.js"></script>
+    <script src="login.js"></script>
+  </body>
+</html>

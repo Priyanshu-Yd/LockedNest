@@ -1,0 +1,139 @@
+:root {
+  --ink: #07090d;
+  --text: #f2efe8;
+  --muted: #9a958a;
+  --accent: #d7ff3c;
+  --accent-ink: #12160a;
+  --danger: #ff6b7a;
+  --line: rgba(232, 226, 214, 0.12);
+  --display: "Syne", "Segoe UI Variable", sans-serif;
+  --sans: "DM Sans", "Segoe UI", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  font-family: var(--sans);
+  color: var(--text);
+  background: var(--ink);
+  overflow: hidden;
+}
+
+.atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.auth-shell {
+  position: relative;
+  z-index: 1;
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.auth-card {
+  width: min(400px, 100%);
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  background: rgba(14, 18, 24, 0.72);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  padding: 32px 28px 24px;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.4);
+}
+
+.brand-mark {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  background: var(--accent);
+  box-shadow: 0 0 0 5px rgba(215, 255, 60, 0.12);
+  transform: rotate(12deg);
+  margin-bottom: 18px;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--muted);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+}
+
+h1 {
+  margin: 8px 0 8px;
+  font-family: var(--display);
+  font-size: 2.2rem;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+}
+
+.lede {
+  margin: 0 0 22px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.form { display: grid; gap: 8px; }
+
+label {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+input[type="password"] {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 12px 14px;
+  outline: none;
+  font: inherit;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+input[type="password"]:focus {
+  border-color: rgba(215, 255, 60, 0.55);
+  box-shadow: 0 0 0 3px rgba(215, 255, 60, 0.12);
+}
+
+.primary-btn {
+  margin-top: 10px;
+  border: 0;
+  border-radius: 999px;
+  min-height: 44px;
+  font-weight: 700;
+  font-family: var(--sans);
+  color: var(--accent-ink);
+  background: var(--accent);
+  cursor: pointer;
+}
+
+.primary-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.error {
+  margin: 4px 0 0;
+  color: var(--danger);
+  font-size: 0.86rem;
+}
+
+.hint {
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.hidden { display: none; }

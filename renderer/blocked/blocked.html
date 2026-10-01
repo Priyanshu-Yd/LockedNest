@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline';"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Website Blocked — LockedNest</title>
+    <style>
+      :root {
+        --bg: #0f1419;
+        --card: #16202c;
+        --line: rgba(148, 163, 184, 0.18);
+        --text: #e8eef7;
+        --muted: #93a4b8;
+        --accent: #3d9cf0;
+        --font: "Segoe UI", "Candara", "Gill Sans", sans-serif;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        font-family: var(--font);
+        color: var(--text);
+        background:
+          radial-gradient(900px 400px at 20% 0%, rgba(61,156,240,.12), transparent 55%),
+          var(--bg);
+        padding: 24px;
+      }
+      .card {
+        width: min(440px, 100%);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: var(--card);
+        padding: 32px 28px;
+        text-align: center;
+      }
+      .icon {
+        font-size: 2.4rem;
+        margin-bottom: 10px;
+      }
+      h1 {
+        margin: 0 0 10px;
+        font-size: 1.35rem;
+      }
+      p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+      .hint {
+        margin-top: 18px;
+        font-size: 0.85rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <div class="icon" id="icon">🚫</div>
+      <h1 id="title">Website Blocked</h1>
+      <p id="message">This domain is not allowed in your Nest.</p>
+      <p class="hint" id="hint">Manage allowed websites from Settings.</p>
+    </main>
+    <script>
+      const params = new URLSearchParams(location.search);
+      const reason = params.get('reason') || 'blocked';
+      if (reason === 'removed') {
+        document.getElementById('icon').textContent = '🔒';
+        document.getElementById('title').textContent = 'Website Access Removed';
+        document.getElementById('message').textContent =
+          'This domain is no longer allowed in your Nest.';
+        document.getElementById('hint').textContent = 'Return to Home to continue.';
+      }
+    </script>
+  </body>
+</html>
