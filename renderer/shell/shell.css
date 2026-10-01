@@ -594,7 +594,11 @@ html[data-theme="light"] .theme-toggle .icon-moon {
   margin-top: 18px;
 }
 
-body.is-locked .app-shell { visibility: hidden; }
+body.is-locked .app-shell {
+  /* Hide shell chrome while locked — do NOT blur the live UI. */
+  visibility: hidden;
+  pointer-events: none;
+}
 
 .lock-screen {
   position: fixed;
@@ -603,34 +607,54 @@ body.is-locked .app-shell { visibility: hidden; }
   display: grid;
   place-items: center;
   overflow: hidden;
+  /* Never inherit / cascade CSS filter blur onto the unlock card. */
+  filter: none !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .lock-blur {
   position: absolute;
-  inset: -28px;
-  background: #07090d center / cover no-repeat;
-  filter: blur(24px) saturate(1.05);
-  transform: scale(1.08);
+  inset: 0;
+  /* Clean Nest backdrop — no full-screen muddy screenshot blur. */
+  background:
+    radial-gradient(ellipse at 50% 38%, #141922 0%, #0a0c10 55%, #07090d 100%);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: none;
+  transform: none;
+  opacity: 1;
+}
+
+.lock-blur.has-image {
+  /* Optional privacy fade: dim captured frame lightly, do not blur whole screen. */
+  filter: none;
+  opacity: 0.22;
 }
 
 .lock-veil {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 50% 40%, rgba(7, 9, 13, 0.2), rgba(7, 9, 13, 0.82) 55%, rgba(7, 9, 13, 0.94));
+    radial-gradient(circle at 50% 40%, rgba(7, 9, 13, 0.15), rgba(7, 9, 13, 0.72) 52%, rgba(7, 9, 13, 0.92));
+  pointer-events: none;
 }
 
 .lock-card {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   width: min(390px, calc(100% - 32px));
   border: 1px solid var(--line-strong);
   border-radius: 26px;
-  background: rgba(12, 16, 22, 0.78);
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
+  background: rgba(14, 18, 26, 0.92);
+  /* Soft glass only on the card — never blur the full window. */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   padding: 30px 28px 26px;
   text-align: center;
+  filter: none;
+  opacity: 1;
 }
 
 .lock-glyph {

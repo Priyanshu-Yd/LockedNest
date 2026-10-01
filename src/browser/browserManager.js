@@ -903,6 +903,8 @@ function createBrowserWindow() {
   );
 
   browserWindow.once('ready-to-show', () => {
+    if (!browserWindow || browserWindow.isDestroyed()) return;
+    browserWindow.maximize();
     browserWindow.show();
   });
 

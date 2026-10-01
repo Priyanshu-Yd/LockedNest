@@ -4,13 +4,24 @@ window.SafeNestMotion = window.SafeNestMotion || {};
 
 /**
  * Lock visuals — security state must already be applied before calling.
+ * Never apply full-screen CSS blur; keep the unlock card sharp.
  * @param {{ panic?: boolean, nest?: object }} opts
  */
 window.SafeNestMotion.playLock = function playLock(opts = {}) {
+  const lockScreen = document.getElementById('lock-screen');
   const lockCard = document.querySelector('.lock-card');
   const nestHost = document.getElementById('lock-nest');
   const panic = Boolean(opts.panic);
   const cfg = window.SafeNestMotion.config;
+
+  if (lockScreen) {
+    lockScreen.style.filter = '';
+    lockScreen.style.opacity = '';
+  }
+  if (lockCard) {
+    lockCard.style.filter = '';
+    lockCard.style.opacity = '1';
+  }
 
   if (opts.nest) opts.nest.setState(panic ? 'locked' : 'close');
   if (nestHost && window.SafeNestMotion._lockNest) {
@@ -23,8 +34,16 @@ window.SafeNestMotion.playLock = function playLock(opts = {}) {
       const dur = panic ? cfg.dur.panic : cfg.dur.lock;
       gsap.fromTo(
         lockCard,
-        { y: panic ? 8 : 20, opacity: 0, scale: panic ? 0.99 : 0.96 },
-        { y: 0, opacity: 1, scale: 1, duration: dur, ease: cfg.ease.out }
+        { y: panic ? 8 : 20, opacity: 0, scale: panic ? 0.99 : 0.96, filter: 'none' },
+        {
+          y: 0,
+          opacity: 1,
+          scale: 1,
+          filter: 'none',
+          duration: dur,
+          ease: cfg.ease.out,
+          clearProps: 'filter',
+        }
       );
       const modules = lockCard.querySelectorAll('.lock-modules span');
       if (modules.length) {
@@ -38,6 +57,7 @@ window.SafeNestMotion.playLock = function playLock(opts = {}) {
     () => {
       if (lockCard) {
         lockCard.style.opacity = '1';
+        lockCard.style.filter = '';
       }
     }
   );
@@ -57,13 +77,23 @@ window.SafeNestMotion.playUnlock = function playUnlock(opts = {}) {
     window.SafeNestMotion.skipOr(
       () => {
         const tl = gsap.timeline({
-          onComplete: () => resolve(),
+          onComplete: () => {
+            if (lockCard) {
+              lockCard.style.filter = '';
+              lockCard.style.opacity = '';
+              lockCard.style.transform = '';
+            }
+            if (lockScreen) {
+              lockScreen.style.opacity = '';
+              lockScreen.style.filter = '';
+            }
+            resolve();
+          },
         });
         if (lockCard) {
           tl.to(lockCard, {
-            scale: 1.04,
+            scale: 1.03,
             opacity: 0,
-            filter: 'blur(8px)',
             duration: cfg.dur.unlock * 0.55,
             ease: cfg.ease.soft,
           });
@@ -75,9 +105,6 @@ window.SafeNestMotion.playUnlock = function playUnlock(opts = {}) {
               opacity: 0,
               duration: cfg.dur.unlock * 0.35,
               ease: cfg.ease.out,
-              onComplete: () => {
-                lockScreen.style.opacity = '';
-              },
             },
             '-=0.2'
           );

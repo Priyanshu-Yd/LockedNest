@@ -51,11 +51,13 @@ function createLoginWindow() {
   }
 
   loginWindow = new BrowserWindow({
-    width: 480,
-    height: 680,
-    resizable: false,
-    maximizable: false,
-    fullscreenable: false,
+    width: 1280,
+    height: 840,
+    minWidth: 720,
+    minHeight: 560,
+    resizable: true,
+    maximizable: true,
+    fullscreenable: true,
     title: 'SafeNest',
     backgroundColor: '#0a0c10',
     show: false,
@@ -68,7 +70,11 @@ function createLoginWindow() {
   });
 
   loginWindow.loadFile(path.join(__dirname, 'renderer', 'login', 'login.html'));
-  loginWindow.once('ready-to-show', () => loginWindow.show());
+  loginWindow.once('ready-to-show', () => {
+    if (!loginWindow || loginWindow.isDestroyed()) return;
+    loginWindow.maximize();
+    loginWindow.show();
+  });
   loginWindow.on('closed', () => {
     loginWindow = null;
     if (!authenticated) {

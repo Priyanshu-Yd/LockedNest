@@ -129,32 +129,42 @@ html, body {
   display: grid;
   place-items: center;
   overflow: hidden;
+  filter: none !important;
 }
 
 .lock-blur {
   position: absolute;
-  inset: -24px;
-  background: #0a0c10 center / cover no-repeat;
-  filter: blur(22px);
-  transform: scale(1.06);
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 38%, #141922 0%, #0a0c10 55%, #07090d 100%);
+  background-size: cover;
+  background-position: center;
+  filter: none;
+  transform: none;
+}
+
+.lock-blur.has-image {
+  opacity: 0.22;
 }
 
 .lock-veil {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 40%, rgba(10, 12, 16, 0.25), rgba(10, 12, 16, 0.92));
+  background: radial-gradient(circle at 50% 40%, rgba(10, 12, 16, 0.2), rgba(10, 12, 16, 0.9));
+  pointer-events: none;
 }
 
 .lock-card {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   width: min(380px, calc(100% - 32px));
   border: 1px solid var(--line);
   border-radius: 24px;
-  background: rgba(18, 21, 28, 0.88);
-  backdrop-filter: blur(18px);
+  background: rgba(18, 21, 28, 0.92);
+  backdrop-filter: blur(12px);
   padding: 28px;
   text-align: center;
+  filter: none;
 }
 
 .lock-icon {

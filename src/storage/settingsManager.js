@@ -10,7 +10,7 @@ const DEFAULT_PRIVACY = Object.freeze({
   clearRecentFilesOnLock: false,
   clearBrowsingDataOnLock: false,
   clearBrowsingDataOnPanic: true,
-  privacyBlur: true,
+  privacyBlur: false,
   clipboardRetentionSeconds: 0,
 });
 

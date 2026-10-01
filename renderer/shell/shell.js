@@ -164,7 +164,14 @@ function showErrorEl(el, message) {
 }
 
 function setBlurBackground(dataUrl) {
-  lockBlur.style.backgroundImage = dataUrl ? `url("${dataUrl}")` : '';
+  if (!lockBlur) return;
+  if (dataUrl) {
+    lockBlur.style.backgroundImage = `url("${dataUrl}")`;
+    lockBlur.classList.add('has-image');
+  } else {
+    lockBlur.style.backgroundImage = '';
+    lockBlur.classList.remove('has-image');
+  }
 }
 
 function formatTime(iso) {
@@ -756,6 +763,13 @@ function applyLockState(state) {
   if (isLocked) {
     lockScreen.classList.remove('hidden');
     lockScreen.style.opacity = '';
+    lockScreen.style.filter = '';
+    const lockCard = lockScreen.querySelector('.lock-card');
+    if (lockCard) {
+      lockCard.style.opacity = '';
+      lockCard.style.filter = '';
+      lockCard.style.transform = '';
+    }
     window.VaultPersonal?.clearMediaViewers();
     const clipInput = document.getElementById('clipboard-input');
     if (clipInput) clipInput.value = '';
@@ -769,8 +783,9 @@ function applyLockState(state) {
     homeNest?.setState('locked');
     lockNest?.setState('locked');
     if (window.SafeNestMotion?.playLock) {
+      const reason = String(state?.reason || '');
       window.SafeNestMotion.playLock({
-        panic: Boolean(state?.panic || state?.reason === 'panic'),
+        panic: Boolean(state?.panic || reason === 'PANIC_LOCK' || reason === 'panic'),
         nest: lockNest,
       });
     }

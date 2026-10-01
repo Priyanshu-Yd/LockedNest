@@ -7,6 +7,8 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron .",
+    "dist": "electron-builder --win",
+    "dist:dir": "electron-builder --win --dir",
     "test:phase1": "electron scripts/phase1-smoke.js",
     "test:phase3": "electron scripts/phase3-smoke.js",
     "test:features": "electron scripts/features-smoke.js",
@@ -21,10 +23,51 @@
     "test:security:vault": "electron scripts/security-vaultprivate-tests.js",
     "test:security:closure": "electron scripts/security-closure-tests.js"
   },
-  "author": "",
+  "author": "SafeNest",
   "license": "MIT",
+  "build": {
+    "appId": "com.safenest.app",
+    "productName": "SafeNest",
+    "copyright": "Copyright © SafeNest",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*",
+      "src/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "win": {
+      "signAndEditExecutable": false,
+      "target": [
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        },
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "artifactName": "${productName}-${version}-${os}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SafeNest"
+    },
+    "portable": {
+      "artifactName": "SafeNest-Portable.exe"
+    }
+  },
   "devDependencies": {
-    "electron": "^44.5.1"
+    "electron": "^44.5.1",
+    "electron-builder": "^26.0.12"
   },
   "dependencies": {
     "@fontsource/dm-sans": "^5.3.0",
