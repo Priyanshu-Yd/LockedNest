@@ -9,6 +9,7 @@ const MAX_EVENTS = 300;
 const EVENT_TYPES = new Set([
   'UNLOCK_SUCCESS',
   'UNLOCK_FAILED',
+  'UNLOCK_RATE_LIMITED',
   'MANUAL_LOCK',
   'PANIC_LOCK',
   'AUTO_LOCK',
@@ -61,10 +62,10 @@ function sanitizeMeta(meta) {
   }
   const out = {};
   if (typeof meta.domain === 'string') {
-    out.domain = meta.domain.toLowerCase().slice(0, 253);
+    out.domain = meta.domain.toLowerCase().replace(/[\r\n\u0000-\u001f]/g, '').slice(0, 253);
   }
   if (typeof meta.spaceName === 'string') {
-    out.spaceName = meta.spaceName.slice(0, 40);
+    out.spaceName = meta.spaceName.replace(/[\r\n\u0000-\u001f]/g, '').slice(0, 40);
   }
   if (typeof meta.spaceId === 'string') {
     out.spaceId = meta.spaceId.slice(0, 64);
@@ -114,6 +115,8 @@ function labelFor(type) {
       return 'Browser unlocked';
     case 'UNLOCK_FAILED':
       return 'Incorrect password';
+    case 'UNLOCK_RATE_LIMITED':
+      return 'Unlock temporarily locked out';
     case 'MANUAL_LOCK':
       return 'Browser locked';
     case 'PANIC_LOCK':

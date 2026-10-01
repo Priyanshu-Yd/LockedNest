@@ -1,7 +1,7 @@
 'use strict';
 
 const { pathToFileURL } = require('url');
-const { protocol, net } = require('electron');
+const { protocol, net, session } = require('electron');
 const {
   resolveSafePath,
   CATEGORIES,
@@ -13,6 +13,7 @@ const privateFilesManager = require('./privateFilesManager');
 const SCHEME = 'vaultprivate';
 
 let accessChecker = null;
+const deniedSessions = new WeakSet();
 
 function installPrivilegedScheme() {
   protocol.registerSchemesAsPrivileged([
@@ -23,8 +24,9 @@ function installPrivilegedScheme() {
         secure: true,
         supportFetchAPI: true,
         stream: true,
-        bypassCSP: true,
-        corsEnabled: true,
+        // Do not enable CORS — BrowserView pages must not fetch vault bytes.
+        corsEnabled: false,
+        bypassCSP: false,
       },
     },
   ]);
@@ -85,6 +87,7 @@ function parseMediaUrl(requestUrl) {
     relativePath.includes('..') ||
     relativePath.includes('\0') ||
     relativePath.includes('\\') ||
+    /%(?:2e|2f|5c)/i.test(relativePath) ||
     pathLooksAbsolute(relativePath)
   ) {
     return null;
@@ -102,68 +105,89 @@ function pathLooksAbsolute(value) {
   );
 }
 
-function registerMediaProtocol() {
-  protocol.handle(SCHEME, async (request) => {
-    const access = accessChecker ? accessChecker() : { authenticated: false, locked: true };
-    if (!access.authenticated || access.locked) {
-      return new Response('', { status: 403, statusText: 'Locked' });
-    }
+async function serveMediaRequest(requestUrl) {
+  const access = accessChecker ? accessChecker() : { authenticated: false, locked: true };
+  if (!access.authenticated || access.locked) {
+    return new Response('', { status: 403, statusText: 'Locked' });
+  }
 
-    const parsed = parseMediaUrl(request.url);
-    if (!parsed) {
-      return new Response('', { status: 400 });
-    }
+  const parsed = parseMediaUrl(requestUrl);
+  if (!parsed) {
+    return new Response('', { status: 400 });
+  }
 
-    const allowed =
-      parsed.category === 'photos'
-        ? new Set(['image'])
-        : parsed.category === 'videos'
-          ? new Set(['video'])
-          : parsed.category === 'downloads' || parsed.category === 'files'
-            ? new Set(['image', 'video'])
-            : null;
+  const allowed =
+    parsed.category === 'photos'
+      ? new Set(['image'])
+      : parsed.category === 'videos'
+        ? new Set(['video'])
+        : parsed.category === 'downloads' || parsed.category === 'files'
+          ? new Set(['image', 'video'])
+          : null;
 
-    // resolveSafePath enforces vault root for parsed.spaceId only — no cross-vault.
-    const media = privateFilesManager.resolveMediaFile(
-      parsed.spaceId,
-      parsed.category,
-      parsed.relativePath,
-      allowed
-    );
-    if (!media.ok) {
-      return new Response('', { status: 404 });
-    }
+  const media = privateFilesManager.resolveMediaFile(
+    parsed.spaceId,
+    parsed.category,
+    parsed.relativePath,
+    allowed
+  );
+  if (!media.ok) {
+    return new Response('', { status: 404 });
+  }
 
-    const boundary = resolveSafePath(parsed.spaceId, parsed.category, parsed.relativePath, {
-      requireExisting: true,
-      expect: 'file',
-    });
-    if (!boundary.ok) {
-      return new Response('', { status: 404 });
-    }
-
-    // Defense in depth: resolved absolute path must still belong to this space root.
-    if (
-      !pathIsInside(boundary.absolutePath, boundary.spaceRoot) ||
-      media.absolutePath !== boundary.absolutePath
-    ) {
-      return new Response('', { status: 403 });
-    }
-
-    const safe = assertSafePrivateTarget(boundary.absolutePath, boundary.categoryDir, {
-      mustExist: true,
-      expect: 'file',
-    });
-    if (!safe.ok) {
-      return new Response('', { status: 403 });
-    }
-
-    try {
-      return await net.fetch(pathToFileURL(media.absolutePath).href);
-    } catch {
-      return new Response('', { status: 500 });
-    }
+  const boundary = resolveSafePath(parsed.spaceId, parsed.category, parsed.relativePath, {
+    requireExisting: true,
+    expect: 'file',
   });
+  if (!boundary.ok) {
+    return new Response('', { status: 404 });
+  }
+
+  if (
+    !pathIsInside(boundary.absolutePath, boundary.spaceRoot) ||
+    media.absolutePath !== boundary.absolutePath
+  ) {
+    return new Response('', { status: 403 });
+  }
+
+  const safe = assertSafePrivateTarget(boundary.absolutePath, boundary.categoryDir, {
+    mustExist: true,
+    expect: 'file',
+  });
+  if (!safe.ok) {
+    return new Response('', { status: 403 });
+  }
+
+  try {
+    return await net.fetch(pathToFileURL(media.absolutePath).href);
+  } catch {
+    return new Response('', { status: 500 });
+  }
+}
+
+/**
+ * Shell / default session only — Nest UI may load private media.
+ */
+function registerMediaProtocol() {
+  const defaultSession = session.defaultSession;
+  defaultSession.protocol.handle(SCHEME, async (request) => serveMediaRequest(request.url));
+}
+
+/**
+ * BrowserView partitions must never read vaultprivate:// (untrusted web content).
+ */
+function denyMediaProtocolOnSession(targetSession) {
+  if (!targetSession || deniedSessions.has(targetSession)) {
+    return;
+  }
+  try {
+    targetSession.protocol.handle(SCHEME, async () =>
+      new Response('', { status: 403, statusText: 'Forbidden' })
+    );
+    deniedSessions.add(targetSession);
+  } catch (error) {
+    console.warn('[SafeNest] could not deny vaultprivate on browser session:', error?.message || error);
+  }
 }
 
 function buildMediaUrl(spaceId, category, relativePath) {
@@ -186,6 +210,7 @@ module.exports = {
   installPrivilegedScheme,
   setAccessChecker,
   registerMediaProtocol,
+  denyMediaProtocolOnSession,
   buildMediaUrl,
   parseMediaUrl,
 };

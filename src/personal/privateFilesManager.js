@@ -33,7 +33,37 @@ const DOC_EXT = new Set([
   '.pptx',
   '.zip',
 ]);
-const DANGEROUS_EXT = new Set(['.exe', '.bat', '.cmd', '.ps1', '.msi', '.scr']);
+const DANGEROUS_EXT = new Set([
+  '.exe',
+  '.bat',
+  '.cmd',
+  '.ps1',
+  '.msi',
+  '.msp',
+  '.scr',
+  '.com',
+  '.vbs',
+  '.vbe',
+  '.js',
+  '.jse',
+  '.wsf',
+  '.wsh',
+  '.hta',
+  '.lnk',
+  '.url',
+  '.pif',
+  '.cpl',
+  '.msc',
+]);
+
+function isDangerousFilename(name) {
+  // Strip trailing dots/spaces (Windows normalization) before extension check.
+  const cleaned = String(name || '')
+    .replace(/[\s.]+$/g, '')
+    .toLowerCase();
+  const ext = path.extname(cleaned);
+  return DANGEROUS_EXT.has(ext);
+}
 
 /** @type {Map<string, { at: number, stats: object }>} */
 const statsCache = new Map();
@@ -393,6 +423,10 @@ function importFilesFromSources(spaceId, category, sourcePaths) {
     }
 
     const baseName = sanitizeDownloadBasename(path.basename(source));
+    if (isDangerousFilename(baseName)) {
+      errors.push('Executable files cannot be imported into your Nest.');
+      continue;
+    }
     const unique = uniqueFilename(destRoot.absolutePath, baseName);
     const dest = resolveSafePath(spaceId, category, unique);
     if (!dest.ok) {
@@ -480,6 +514,9 @@ function prepareDownloadDestination(spaceId, suggestedName) {
     return root;
   }
   const base = sanitizeDownloadBasename(suggestedName);
+  if (isDangerousFilename(base)) {
+    return { ok: false, error: 'This file type cannot be saved into your Nest.' };
+  }
   const unique = uniqueFilename(root.absolutePath, base);
   const dest = resolveSafePath(spaceId, 'downloads', unique);
   if (!dest.ok) {
@@ -509,6 +546,8 @@ module.exports = {
   IMAGE_EXT,
   VIDEO_EXT,
   PLAYABLE_VIDEO_EXT,
+  DANGEROUS_EXT,
+  isDangerousFilename,
   DOC_EXT,
   DANGEROUS_EXT,
   classifyExtension,

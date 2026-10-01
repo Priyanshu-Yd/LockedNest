@@ -39,7 +39,18 @@ function sanitizeEntry(entry) {
   if (!isValidPrivateSpaceId(spaceId)) return null;
   if (typeof category !== 'string' || !CATEGORIES[category]) return null;
   if (typeof relativePath !== 'string' || !relativePath || relativePath.length > 4096) return null;
-  if (relativePath.includes('..') || relativePath.includes('\0')) return null;
+  if (
+    relativePath.includes('..') ||
+    relativePath.includes('\0') ||
+    relativePath.includes('\\') ||
+    /%(?:2e|2f|5c)/i.test(relativePath) ||
+    relativePath.startsWith('/') ||
+    /^[a-zA-Z]:/.test(relativePath) ||
+    relativePath.startsWith('\\\\') ||
+    /^(file|https?|data|javascript|blob):/i.test(relativePath)
+  ) {
+    return null;
+  }
   if (!ACTIONS.has(action)) return null;
   if (typeof name !== 'string' || !name || name.length > 255) return null;
   return {
@@ -78,7 +89,8 @@ function getRecent(spaceId, limit = 20) {
   }
   const n = Math.min(Math.max(Number(limit) || 20, 1), MAX_RECENT);
   return readAll()
-    .filter((item) => item.spaceId === spaceId)
+    .map((item) => sanitizeEntry(item))
+    .filter((item) => item && item.spaceId === spaceId)
     .slice(0, n)
     .map((item) => ({
       spaceId: item.spaceId,

@@ -15,7 +15,8 @@ window.SafeNestMotion.toast = function toast(message, opts = {}) {
 
   const el = document.createElement('div');
   el.className = `sn-toast${opts.error ? ' is-error' : ''}`;
-  el.innerHTML = `<span class="sn-toast-mark" aria-hidden="true">${opts.error ? '!' : '✓'}</span><span>${message}</span>`;
+  el.innerHTML = `<span class="sn-toast-mark" aria-hidden="true">${opts.error ? '!' : '✓'}</span><span></span>`;
+  el.querySelector('span:last-child').textContent = String(message);
   host.appendChild(el);
 
   window.SafeNestMotion.skipOr(

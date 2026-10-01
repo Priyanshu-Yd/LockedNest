@@ -6,6 +6,8 @@ const {
   isGoogleAuthUrl,
   chromeIdentityHeaders,
 } = require('./browserIdentity');
+const { isGoogleAccountsHostname } = require('../domains/hostnameUtils');
+const { safeLogUrl } = require('./urlSafety');
 
 function hostnameOf(urlString) {
   try {
@@ -54,7 +56,8 @@ function isUsefulAuthDestination(urlString) {
       return true;
     }
 
-    if (host.includes('google.') && !host.endsWith('chatgpt.com')) {
+    // Exact Google account hosts (incl. country TLDs) — never host.includes('google.')
+    if (isGoogleAccountsHostname(host)) {
       return true;
     }
   } catch {
@@ -206,7 +209,7 @@ function resolveAuthDestinationInWindow(session, startUrl, timeoutMs = 18000) {
       if (!url || isInternalish(url)) {
         return;
       }
-      console.log(`[VaultBrowse] auth resolve hop: ${url}`);
+      console.log(`[SafeNest] auth resolve hop: ${safeLogUrl(url)}`);
       if (isUsefulAuthDestination(url)) {
         finish({ ok: true, url, via: 'window' });
       }
@@ -236,7 +239,9 @@ function resolveAuthDestinationInWindow(session, startUrl, timeoutMs = 18000) {
       if (!isMainFrame || code === -3 || settled) {
         return;
       }
-      console.warn(`[VaultBrowse] auth resolve fail (${code}): ${desc} @ ${validatedURL}`);
+      console.warn(
+        `[SafeNest] auth resolve fail (${code}): ${desc} @ ${safeLogUrl(validatedURL)}`
+      );
     });
 
     wc.loadURL(startUrl, { userAgent: ua }).catch((error) => {

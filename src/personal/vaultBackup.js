@@ -98,7 +98,7 @@ function buildPayload() {
 }
 
 function encryptBackup(password, payloadObject) {
-  if (typeof password !== 'string' || password.length < 6) {
+  if (typeof password !== 'string' || password.length < 10) {
     return { ok: false, error: 'Enter your Nest password to encrypt the backup.' };
   }
   const salt = crypto.randomBytes(16);
@@ -113,7 +113,7 @@ function encryptBackup(password, payloadObject) {
 }
 
 function decryptBackup(password, buffer) {
-  if (typeof password !== 'string' || password.length < 6) {
+  if (typeof password !== 'string' || password.length < 10) {
     return { ok: false, error: 'Enter the password used for this backup.' };
   }
   if (!Buffer.isBuffer(buffer) || buffer.length < MAGIC.length + 16 + 12 + 16 + 1) {

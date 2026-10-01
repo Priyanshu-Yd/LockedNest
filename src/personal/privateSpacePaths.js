@@ -76,6 +76,8 @@ function resolveSafePath(spaceId, category, relativePath = '', options = {}) {
     raw.startsWith('/') ||
     raw.startsWith('\\') ||
     raw.includes('..') ||
+    /%(?:2e|2f|5c)/i.test(raw) ||
+    /%25(?:2e|2f|5c)/i.test(raw) ||
     /^(file|https?|data|javascript|vbscript|blob):/i.test(raw.trim())
   ) {
     return { ok: false, error: 'Path not allowed.' };

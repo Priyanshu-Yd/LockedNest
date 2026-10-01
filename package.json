@@ -13,12 +13,18 @@
     "test:personal": "electron scripts/personal-smoke.js",
     "test:personal:m2": "electron scripts/personal-m2-smoke.js",
     "test:personal:m3": "electron scripts/personal-m3-smoke.js",
-    "test:personal:m4": "electron scripts/personal-m4-smoke.js"
+    "test:personal:m4": "electron scripts/personal-m4-smoke.js",
+    "test:security": "electron scripts/security-smoke.js",
+    "test:security:path": "electron scripts/security-path-tests.js",
+    "test:security:ipc": "electron scripts/security-ipc-tests.js",
+    "test:security:lock": "electron scripts/security-lock-tests.js",
+    "test:security:vault": "electron scripts/security-vaultprivate-tests.js",
+    "test:security:closure": "electron scripts/security-closure-tests.js"
   },
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^37.2.0"
+    "electron": "^44.5.1"
   },
   "dependencies": {
     "@fontsource/dm-sans": "^5.3.0",

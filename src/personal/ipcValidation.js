@@ -76,7 +76,25 @@ function validateRelativePath(relativePath, { allowEmpty = true } = {}) {
   if (rejectSchemeLike(relativePath)) {
     return { ok: false, error: 'Path not allowed.' };
   }
+  if (
+    relativePath.includes('..') ||
+    relativePath.includes('\\') ||
+    relativePath.includes('\0') ||
+    /%(?:2e|2f|5c)/i.test(relativePath) ||
+    pathLooksAbsoluteish(relativePath)
+  ) {
+    return { ok: false, error: 'Path not allowed.' };
+  }
   return { ok: true, value: relativePath };
+}
+
+function pathLooksAbsoluteish(value) {
+  return (
+    value.startsWith('/') ||
+    /^[a-zA-Z]:/.test(value) ||
+    value.startsWith('\\\\') ||
+    value.startsWith('//')
+  );
 }
 
 function validateFilename(name) {

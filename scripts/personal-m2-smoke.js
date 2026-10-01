@@ -76,25 +76,46 @@ app.whenReady().then(() => {
   const outside = path.join(tempRoot, 'outside.txt');
   fs.writeFileSync(outside, 'OUT');
   const linkSrc = path.join(srcDir, 'link.txt');
+  let symlinkSourceStatus = 'SYMLINK_TEST_SKIPPED_PRIVILEGE';
   try {
     fs.symlinkSync(outside, linkSrc);
     const linked = mgr.importFilesFromSources('personal', 'files', [linkSrc]);
-    assert(linked.ok === false, 'symlink source rejected');
+    if (linked.ok === false) {
+      symlinkSourceStatus = 'SYMLINK_TEST_PASS';
+    } else {
+      symlinkSourceStatus = 'SYMLINK_TEST_FAIL';
+    }
   } catch (error) {
-    console.log('SYMLINK_SOURCE_SKIP', error.message);
+    if (/EPERM|privilege|admin/i.test(String(error.message || error))) {
+      symlinkSourceStatus = 'SYMLINK_TEST_SKIPPED_PRIVILEGE';
+    } else {
+      symlinkSourceStatus = 'SYMLINK_TEST_FAIL';
+      throw error;
+    }
   }
+  console.log('SYMLINK_SOURCE', symlinkSourceStatus);
+  assert(symlinkSourceStatus !== 'SYMLINK_TEST_FAIL', 'symlink source must not FAIL');
 
   // Symlink inside private root rejected on list/delete
   const filesRoot = resolveSafePath('personal', 'files', '').absolutePath;
   const evilLink = path.join(filesRoot, 'escape');
+  let symlinkPrivateStatus = 'SYMLINK_TEST_SKIPPED_PRIVILEGE';
   try {
     fs.symlinkSync(outside, evilLink);
     const listed = mgr.listFiles('personal', 'files');
-    assert(listed.items.every((i) => i.name !== 'escape'), 'symlink hidden from list');
-    assert(mgr.deleteFile('personal', 'files', 'escape').ok === false, 'symlink delete rejected');
+    const hidden = listed.items.every((i) => i.name !== 'escape');
+    const delBlocked = mgr.deleteFile('personal', 'files', 'escape').ok === false;
+    symlinkPrivateStatus = hidden && delBlocked ? 'SYMLINK_TEST_PASS' : 'SYMLINK_TEST_FAIL';
   } catch (error) {
-    console.log('SYMLINK_PRIVATE_SKIP', error.message);
+    if (/EPERM|privilege|admin/i.test(String(error.message || error))) {
+      symlinkPrivateStatus = 'SYMLINK_TEST_SKIPPED_PRIVILEGE';
+    } else {
+      symlinkPrivateStatus = 'SYMLINK_TEST_FAIL';
+      throw error;
+    }
   }
+  console.log('SYMLINK_PRIVATE', symlinkPrivateStatus);
+  assert(symlinkPrivateStatus !== 'SYMLINK_TEST_FAIL', 'symlink private must not FAIL');
 
   // Space isolation
   mgr.writeTestFile('personal', 'files', 'only-p.txt', 'p');
@@ -123,9 +144,12 @@ app.whenReady().then(() => {
   assert(mgr.deleteFile('personal', 'files', 'renamed-p.txt').ok === true, 'delete ok');
 
   // Downloads destination
-  const dl = mgr.prepareDownloadDestination('personal', '../../evil.exe');
+  const dlEvil = mgr.prepareDownloadDestination('personal', '../../evil.exe');
+  assert(dlEvil.ok === false, 'executable download blocked');
+  const dl = mgr.prepareDownloadDestination('personal', '../../report.pdf');
   assert(dl.ok && !dl.relativePath.includes('..'), 'download basename sanitized');
   assert(dl.absolutePath.includes(`${path.sep}Downloads${path.sep}`), 'download in Downloads');
+  assert(dl.filename === 'report.pdf', 'download filename is basename');
   assert(privateVaultForBrowserSpace('work').ok && privateVaultForBrowserSpace('work').vaultId === 'work', 'work browser → work vault');
   assert(privateVaultForBrowserSpace('chatgpt').ok && privateVaultForBrowserSpace('chatgpt').vaultId === 'personal', 'chatgpt → personal vault');
   assert(privateVaultForBrowserSpace('web').ok && privateVaultForBrowserSpace('web').vaultId === 'personal', 'web browser → personal vault');

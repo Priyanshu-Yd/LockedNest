@@ -13,6 +13,7 @@ const {
   privateVaultForBrowserSpace,
   getCategoryDir,
 } = require('../personal/privateSpacePaths');
+const privateMediaProtocol = require('../personal/privateMediaProtocol');
 const {
   buildChromeUserAgent,
   buildFirefoxUserAgent,
@@ -90,6 +91,8 @@ function getSessionForPartition(partition) {
   const vaultSession = session.fromPartition(partition, { cache: true });
   if (!configuredSessions.has(partition)) {
     vaultSession.setUserAgent(buildChromeUserAgent());
+    // BrowserView partitions must not resolve vaultprivate:// media.
+    privateMediaProtocol.denyMediaProtocolOnSession(vaultSession);
     // Auth-window Firefox identity is scoped by webContentsId. Google hosts
     // also use Firefox headers as a compatibility workaround. Everything else
     // keeps Chrome-like identity (needed for WhatsApp Web).
@@ -108,11 +111,12 @@ function getSessionForPartition(partition) {
       const defaultVault = privateVaultForBrowserSpace(
         browserSpaceIdForPartition(partition)
       );
-      const vaultId = defaultVault.ok ? defaultVault.vaultId : 'personal';
-      privateFilesManager.ensureSpaceLayout(vaultId);
-      const downloadDir = getCategoryDir(vaultId, 'downloads');
-      if (downloadDir) {
-        vaultSession.setDownloadPath(downloadDir);
+      if (defaultVault.ok) {
+        privateFilesManager.ensureSpaceLayout(defaultVault.vaultId);
+        const downloadDir = getCategoryDir(defaultVault.vaultId, 'downloads');
+        if (downloadDir) {
+          vaultSession.setDownloadPath(downloadDir);
+        }
       }
     } catch {
       // will-download handler below remains authoritative
@@ -125,21 +129,22 @@ function getSessionForPartition(partition) {
       }
       const browserSpaceId = browserSpaceIdForPartition(partition);
       const mapped = privateVaultForBrowserSpace(browserSpaceId);
-      // Unmapped/custom spaces still stay inside VaultBrowse (personal Downloads),
-      // never the laptop Downloads folder.
-      const vaultId = mapped.ok ? mapped.vaultId : 'personal';
+      // Unknown / unmapped spaces must NOT silently fall back to personal.
       if (!mapped.ok) {
+        item.cancel();
         console.warn(
-          `[VaultBrowse] download using personal vault (no explicit map for ${browserSpaceId})`
+          `[SafeNest] blocked download: no private vault mapping for space ${browserSpaceId}`
         );
+        return;
       }
+      const vaultId = mapped.vaultId;
       const dest = privateFilesManager.prepareDownloadDestination(
         vaultId,
         item.getFilename()
       );
       if (!dest.ok) {
         item.cancel();
-        console.warn('[VaultBrowse] blocked download: unsafe destination');
+        console.warn('[SafeNest] blocked download: unsafe destination');
         return;
       }
       // Force path — suppresses the system Save dialog.

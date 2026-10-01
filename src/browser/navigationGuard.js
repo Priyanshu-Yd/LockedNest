@@ -4,24 +4,52 @@ const path = require('path');
 const { pathToFileURL } = require('url');
 const spaceManager = require('../spaces/spaceManager');
 
+const RENDERER_ROOT = path.resolve(__dirname, '..', '..', 'renderer');
+
 function getBlockedPageUrl(reason = 'blocked') {
-  const filePath = path.join(__dirname, '..', '..', 'renderer', 'blocked', 'blocked.html');
+  const filePath = path.join(RENDERER_ROOT, 'blocked', 'blocked.html');
   const url = new URL(pathToFileURL(filePath).href);
   url.searchParams.set('reason', reason);
   return url.href;
+}
+
+function isNestOwnedFileUrl(urlString) {
+  try {
+    const url = new URL(urlString);
+    if (url.protocol !== 'file:') {
+      return false;
+    }
+    let filePath = decodeURIComponent(url.pathname);
+    // Windows file URLs: /C:/...
+    if (/^\/[a-zA-Z]:\//.test(filePath)) {
+      filePath = filePath.slice(1);
+    }
+    const resolved = path.resolve(filePath);
+    const root = RENDERER_ROOT.endsWith(path.sep) ? RENDERER_ROOT : RENDERER_ROOT + path.sep;
+    const target = resolved.toLowerCase();
+    const nestRoot = root.toLowerCase();
+    return target === nestRoot.slice(0, -1) || target.startsWith(nestRoot);
+  } catch {
+    return false;
+  }
 }
 
 function isInternalUrl(urlString) {
   if (typeof urlString !== 'string') {
     return false;
   }
-  return (
-    urlString.startsWith('file:') ||
+  // data: / blob: / arbitrary file: are NOT internal Nest pages.
+  if (
     urlString.startsWith('about:') ||
     urlString.startsWith('devtools:') ||
-    urlString.startsWith('chrome-error:') ||
-    urlString.startsWith('data:')
-  );
+    urlString.startsWith('chrome-error:')
+  ) {
+    return true;
+  }
+  if (urlString.startsWith('file:')) {
+    return isNestOwnedFileUrl(urlString);
+  }
+  return false;
 }
 
 function shouldAllowNavigation(urlString, spaceId) {

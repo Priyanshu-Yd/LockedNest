@@ -29,6 +29,28 @@ const ITERATIONS = 600000;
 const KEYLEN = 64;
 const DIGEST = 'sha512';
 const SALT_BYTES = 32;
+/** Length-based policy for local Nest privacy (no complexity theatre). */
+const MIN_PASSWORD_LENGTH = 10;
+const MAX_PASSWORD_LENGTH = 512;
+
+function validatePasswordPolicy(password, { forChange = false } = {}) {
+  if (typeof password !== 'string') {
+    return { ok: false, error: 'Invalid password.' };
+  }
+  if (password.length === 0) {
+    return { ok: false, error: forChange ? 'Enter a new password.' : 'Enter a password.' };
+  }
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return {
+      ok: false,
+      error: `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`,
+    };
+  }
+  if (password.length > MAX_PASSWORD_LENGTH) {
+    return { ok: false, error: 'Invalid password.' };
+  }
+  return { ok: true };
+}
 
 function getVerifierPath() {
   return path.join(app.getPath('userData'), 'password-verifier.bin');
@@ -91,8 +113,9 @@ function loadRecord() {
 }
 
 function createPassword(password) {
-  if (typeof password !== 'string' || password.length < 6) {
-    return { ok: false, error: 'Password must be at least 6 characters.' };
+  const policy = validatePasswordPolicy(password);
+  if (!policy.ok) {
+    return policy;
   }
   if (hasPassword()) {
     return { ok: false, error: 'A password already exists. Unlock instead.' };
@@ -118,27 +141,40 @@ function createPassword(password) {
 }
 
 function verifyPassword(password) {
+  // Generic failures — do not reveal configuration / algorithm / proximity.
+  const AUTH_FAIL = { ok: false, error: 'Incorrect password.' };
+
   if (typeof password !== 'string' || password.length === 0) {
     return { ok: false, error: 'Enter your password.' };
+  }
+  if (password.length > MAX_PASSWORD_LENGTH) {
+    return AUTH_FAIL;
   }
 
   let record;
   try {
     record = loadRecord();
   } catch {
-    return { ok: false, error: 'Could not read password data.' };
+    return AUTH_FAIL;
   }
 
   if (!record) {
-    return { ok: false, error: 'No password has been configured yet.' };
+    return AUTH_FAIL;
   }
 
   if (record.algorithm !== ALGORITHM) {
-    return { ok: false, error: 'Unsupported password algorithm.' };
+    return AUTH_FAIL;
   }
 
-  const salt = Buffer.from(record.salt, 'base64');
-  const expected = Buffer.from(record.verifier, 'base64');
+  let salt;
+  let expected;
+  try {
+    salt = Buffer.from(record.salt, 'base64');
+    expected = Buffer.from(record.verifier, 'base64');
+  } catch {
+    return AUTH_FAIL;
+  }
+
   const actual = deriveVerifier(
     password,
     salt,
@@ -148,12 +184,12 @@ function verifyPassword(password) {
   );
 
   if (expected.length !== actual.length) {
-    return { ok: false, error: 'Incorrect password.' };
+    return AUTH_FAIL;
   }
 
   const match = crypto.timingSafeEqual(expected, actual);
   if (!match) {
-    return { ok: false, error: 'Incorrect password.' };
+    return AUTH_FAIL;
   }
 
   return { ok: true };
@@ -169,10 +205,11 @@ function getPasswordStatus() {
 function changePassword(currentPassword, newPassword, confirmPassword) {
   const verified = verifyPassword(currentPassword);
   if (!verified.ok) {
-    return { ok: false, error: verified.error || 'Current password is incorrect.' };
+    return { ok: false, error: 'Current password is incorrect.' };
   }
-  if (typeof newPassword !== 'string' || newPassword.length < 6) {
-    return { ok: false, error: 'New password must be at least 6 characters.' };
+  const policy = validatePasswordPolicy(newPassword, { forChange: true });
+  if (!policy.ok) {
+    return policy;
   }
   if (newPassword !== confirmPassword) {
     return { ok: false, error: 'New passwords do not match.' };
@@ -197,10 +234,13 @@ function changePassword(currentPassword, newPassword, confirmPassword) {
 }
 
 module.exports = {
+  MIN_PASSWORD_LENGTH,
+  MAX_PASSWORD_LENGTH,
   hasPassword,
   createPassword,
   verifyPassword,
   changePassword,
   getPasswordStatus,
   getVerifierPath,
+  validatePasswordPolicy,
 };

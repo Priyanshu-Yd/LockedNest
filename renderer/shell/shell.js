@@ -987,11 +987,11 @@ document.getElementById('btn-change-password').addEventListener('click', () => {
     title: 'Change Nest password',
     bodyHtml: `
       <label for="pw-current">Current Nest password</label>
-      <input id="pw-current" type="password" />
+      <input id="pw-current" type="password" autocomplete="current-password" minlength="1" maxlength="512" />
       <label for="pw-new">New Nest password</label>
-      <input id="pw-new" type="password" />
+      <input id="pw-new" type="password" autocomplete="new-password" minlength="10" maxlength="512" />
       <label for="pw-confirm">Confirm Nest password</label>
-      <input id="pw-confirm" type="password" />
+      <input id="pw-confirm" type="password" autocomplete="new-password" minlength="10" maxlength="512" />
     `,
     confirmLabel: 'Save',
     onConfirm: async () =>

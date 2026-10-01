@@ -10,6 +10,7 @@ privateMediaProtocol.installPrivilegedScheme();
 require('./src/browser/browserIdentity').installEarlyIdentity();
 const passwordManager = require('./src/security/passwordManager');
 const lockManager = require('./src/security/lockManager');
+const authThrottle = require('./src/security/authThrottle');
 const browserManager = require('./src/browser/browserManager');
 const spaceManager = require('./src/spaces/spaceManager');
 const recentManager = require('./src/storage/recentManager');
@@ -181,12 +182,29 @@ function unlockVault(password) {
     return { ok: true, locked: false };
   }
 
+  const input = authThrottle.validatePasswordInput(password);
+  if (!input.ok) {
+    return input;
+  }
+  const throttle = authThrottle.checkAllowed();
+  if (!throttle.ok) {
+    activityLog.record('UNLOCK_RATE_LIMITED');
+    return throttle;
+  }
+
   const result = passwordManager.verifyPassword(password);
   if (!result.ok) {
+    authThrottle.recordFailure();
     activityLog.record('UNLOCK_FAILED');
+    const again = authThrottle.checkAllowed();
+    if (!again.ok) {
+      activityLog.record('UNLOCK_RATE_LIMITED');
+      return again;
+    }
     return result;
   }
 
+  authThrottle.recordSuccess();
   lockManager.unlock();
   setLastUnlockedAt(new Date().toISOString());
   activityLog.record('UNLOCK_SUCCESS');
@@ -282,14 +300,46 @@ function requireUnlocked() {
 function getDashboardPayload() {
   const { spaces, activeSpaceId } = spaceManager.listSpaces();
   const lockState = lockManager.getState();
+  const unlocked = authenticated && !lockState.locked;
+
+  // While locked, do not expose allowlists, recents, activity, or private stats.
+  if (!unlocked) {
+    return {
+      spaces: spaces.map((space) => ({
+        id: space.id,
+        name: space.name,
+        color: space.color,
+        domains: [],
+      })),
+      activeSpaceId,
+      activeSpace: {
+        id: activeSpaceId,
+        name: spaceManager.getSpaceById(activeSpaceId)?.name || 'Nest',
+        domains: [],
+      },
+      recent: [],
+      autoLock: lockState.autoLock,
+      options: lockState.options,
+      locked: true,
+      lastUnlockedAt: getLastUnlockedAt(),
+      activity: [],
+      websiteCount: 0,
+      services: [],
+      privateSpaceId: DEFAULT_PRIVATE_SPACE_ID,
+      privateStats: { files: 0, photos: 0, videos: 0, downloads: 0 },
+      browserSpaceCount: spaces.length,
+      recentFiles: [],
+      privacy: getPrivacySettings(),
+      clipboard: { empty: true },
+    };
+  }
+
   const services = getAvailableServices(spaces);
   let privateStats = { files: 0, photos: 0, videos: 0, downloads: 0 };
-  if (authenticated && !lockState.locked) {
-    privateFilesManager.ensureSpaceLayout(DEFAULT_PRIVATE_SPACE_ID);
-    const statsResult = privateFilesManager.getStats(DEFAULT_PRIVATE_SPACE_ID);
-    if (statsResult.ok) {
-      privateStats = statsResult.stats;
-    }
+  privateFilesManager.ensureSpaceLayout(DEFAULT_PRIVATE_SPACE_ID);
+  const statsResult = privateFilesManager.getStats(DEFAULT_PRIVATE_SPACE_ID);
+  if (statsResult.ok) {
+    privateStats = statsResult.stats;
   }
   return {
     spaces,
@@ -298,7 +348,7 @@ function getDashboardPayload() {
     recent: recentManager.getRecentAllowed(),
     autoLock: lockState.autoLock,
     options: lockState.options,
-    locked: lockState.locked,
+    locked: false,
     lastUnlockedAt: getLastUnlockedAt(),
     activity: activityLog.getEvents(80).map((event) => ({
       ...event,
@@ -309,12 +359,9 @@ function getDashboardPayload() {
     privateSpaceId: DEFAULT_PRIVATE_SPACE_ID,
     privateStats,
     browserSpaceCount: spaces.length,
-    recentFiles:
-      authenticated && !lockState.locked
-        ? recentFilesManager.getRecent(DEFAULT_PRIVATE_SPACE_ID, 12)
-        : [],
+    recentFiles: recentFilesManager.getRecent(DEFAULT_PRIVATE_SPACE_ID, 12),
     privacy: getPrivacySettings(),
-    clipboard: authenticated && !lockState.locked ? privateClipboard.getStatus() : { empty: true },
+    clipboard: privateClipboard.getStatus(),
   };
 }
 
@@ -348,14 +395,27 @@ function registerIpc() {
   });
 
   ipcMain.handle('auth:verifyPassword', (_event, password) => {
-    if (typeof password !== 'string') {
-      return { ok: false, error: 'Invalid password input.' };
+    const input = authThrottle.validatePasswordInput(password);
+    if (!input.ok) {
+      return input;
+    }
+    const throttle = authThrottle.checkAllowed();
+    if (!throttle.ok) {
+      activityLog.record('UNLOCK_RATE_LIMITED');
+      return throttle;
     }
     const result = passwordManager.verifyPassword(password);
     if (result.ok) {
+      authThrottle.recordSuccess();
       openShellAfterAuth();
     } else {
+      authThrottle.recordFailure();
       activityLog.record('UNLOCK_FAILED');
+      const again = authThrottle.checkAllowed();
+      if (!again.ok) {
+        activityLog.record('UNLOCK_RATE_LIMITED');
+        return again;
+      }
     }
     return result;
   });
@@ -407,7 +467,7 @@ function registerIpc() {
   });
 
   ipcMain.handle('browser:getUrl', () => {
-    if (!authenticated) return '';
+    if (!authenticated || lockManager.isLocked()) return '';
     return browserManager.getCurrentUrl();
   });
 
@@ -922,9 +982,6 @@ function registerIpc() {
   );
 
   ipcMain.handle('lock:unlock', (_event, password) => {
-    if (typeof password !== 'string') {
-      return { ok: false, error: 'Invalid password input.' };
-    }
     return unlockVault(password);
   });
 
